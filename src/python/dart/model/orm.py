@@ -118,7 +118,7 @@ class AccountingDao(db.Model, VersionedAuditableSerializable):
     user_id = Column(String(length=128), nullable=False)
     state = Column(String(length=32), nullable=False)
     entity = Column(String(length=32), nullable=False)
-    params = Column(String(length=128), nullable=False)
+    params = Column(String(length=1024), nullable=False)
     return_code = Column(String(length=4), nullable=False)
     api_version = Column(String(length=4), nullable=False)
     extra = Column(String(length=128), nullable=True)
