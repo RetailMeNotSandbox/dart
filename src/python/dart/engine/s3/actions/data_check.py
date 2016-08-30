@@ -1,5 +1,5 @@
 from datetime import datetime
-import logging
+from dart.util.logging_utils import DartLogger
 import re
 
 import boto3
@@ -7,7 +7,7 @@ import boto3
 from dart.util.s3 import get_bucket_name, get_key_name
 from dart.util.strings import substitute_date_tokens
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def data_check(s3_engine, datastore, action):

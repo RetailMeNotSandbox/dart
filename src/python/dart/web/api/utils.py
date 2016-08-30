@@ -1,6 +1,12 @@
 from dart.model.accounting import ActivityEntity, Accounting
 
 
+def extract_json_request(req):
+    try:
+        return req.get_json() if req.get_json() is not None else {}
+    except Exception: # This id likely a non-browser call.
+        return {}
+
 def generate_accounting_event(return_code, req):
     user_id = 'anonymous'  # should be extracted from request once authentication is deployed.
     state = req.method  # GET/POST/PUT/PATCH/DELETE
@@ -22,9 +28,9 @@ def generate_accounting_event(return_code, req):
         'URL': dict([p.split('=') if '=' in p else [p, ''] for p in
                      req.query_string.split('&')]) if req.query_string else {},
         # passing the json_body as is.
-        'json_body': req.get_json() if req.get_json() is not None else {}
-
+        'json_body': extract_json_request(req)
     }
+
     # Saving the accounting table record takes place here.
     accounting_event = Accounting(user_id=user_id,
                                   state=state,

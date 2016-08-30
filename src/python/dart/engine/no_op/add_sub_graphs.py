@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 from dart.client.python.dart_client import Dart
 from dart.config.config import configuration
@@ -9,7 +9,7 @@ from dart.model.trigger import Trigger, TriggerData, TriggerState
 from dart.model.workflow import Workflow, WorkflowData, WorkflowState
 from dart.trigger.workflow import workflow_completion_trigger
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def add_no_op_engine_sub_graphs(config):

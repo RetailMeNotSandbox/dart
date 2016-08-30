@@ -6,12 +6,13 @@ from jsonpatch import JsonPatch
 from dart.model.event import Event
 from dart.service.event import EventService
 from dart.service.filter import FilterService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 api_event_bp = Blueprint('api_event', __name__)
 
 
 @api_event_bp.route('/event', methods=['POST'])
+@log_request_id
 @jsonapi
 def post_event():
     event = event_service().save_event(Event.from_dict(request.get_json()))
@@ -19,6 +20,7 @@ def post_event():
 
 
 @api_event_bp.route('/event/<event>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_event(event):
@@ -26,6 +28,7 @@ def get_event(event):
 
 
 @api_event_bp.route('/event', methods=['GET'])
+@log_request_id
 @jsonapi
 def find_events():
     limit = int(request.args.get('limit', 20))
@@ -41,6 +44,7 @@ def find_events():
 
 
 @api_event_bp.route('/event/<event>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -50,6 +54,7 @@ def put_event(event):
 
 
 @api_event_bp.route('/event/<event>', methods=['PATCH'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -74,6 +79,7 @@ def update_event(event, updated_event):
 
 
 @api_event_bp.route('/event/<event>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

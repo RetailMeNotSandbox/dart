@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import boto
 
 from dart.engine.redshift.admin.cluster import RedshiftCluster
@@ -6,7 +6,7 @@ from dart.engine.redshift.command.copy import copy_from_s3, core_counts_by_insta
 from dart.engine.redshift.command.ddl import create_schemas_and_tables, create_tracking_schema_and_table
 from dart.util.s3 import get_s3_path, yield_s3_keys, get_bucket
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def load_dataset(redshift_engine, datastore, action):

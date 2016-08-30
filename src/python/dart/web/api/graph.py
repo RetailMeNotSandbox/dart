@@ -7,12 +7,13 @@ from dart.service.datastore import DatastoreService
 from dart.service.graph.resolve import GraphEntityResolverService
 from dart.service.graph.entity import GraphEntityService
 from dart.service.workflow import WorkflowService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 api_graph_bp = Blueprint('api_graph', __name__)
 
 
 @api_graph_bp.route('/graph/entity_identifiers', methods=['GET'])
+@log_request_id
 @jsonapi
 def get_graph_entity_identifiers():
     search = request.args.get('search')
@@ -22,6 +23,7 @@ def get_graph_entity_identifiers():
 
 
 @api_graph_bp.route('/graph/action/<action>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_action(action):
@@ -31,6 +33,7 @@ def get_graph_from_action(action):
 
 
 @api_graph_bp.route('/graph/dataset/<dataset>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_dataset(dataset):
@@ -40,6 +43,7 @@ def get_graph_from_dataset(dataset):
 
 
 @api_graph_bp.route('/graph/datastore/<datastore>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_datastore(datastore):
@@ -49,6 +53,7 @@ def get_graph_from_datastore(datastore):
 
 
 @api_graph_bp.route('/graph/event/<event>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_event(event):
@@ -58,6 +63,7 @@ def get_graph_from_event(event):
 
 
 @api_graph_bp.route('/graph/subscription/<subscription>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_subscription(subscription):
@@ -67,6 +73,7 @@ def get_graph_from_subscription(subscription):
 
 
 @api_graph_bp.route('/graph/trigger/<trigger>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_trigger(trigger):
@@ -76,6 +83,7 @@ def get_graph_from_trigger(trigger):
 
 
 @api_graph_bp.route('/graph/workflow/<workflow>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_graph_from_workflow(workflow):
@@ -85,6 +93,7 @@ def get_graph_from_workflow(workflow):
 
 
 @api_graph_bp.route('/graph/sub_graph', methods=['GET'])
+@log_request_id
 @jsonapi
 def get_sub_graphs():
     related_type = request.args.get('related_type')
@@ -119,6 +128,7 @@ def get_sub_graphs():
 
 
 @api_graph_bp.route('/graph/sub_graph', methods=['POST'])
+@log_request_id
 @accounting_track
 @jsonapi
 def post_entity_map():

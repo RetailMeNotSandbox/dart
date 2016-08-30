@@ -1,5 +1,5 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import logging.config
 import os
 from pydoc import locate
@@ -24,7 +24,7 @@ from dart.service.mutex import db_mutex
 from dart.tool.tool_runner import Tool
 from dart.worker.worker import Worker
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class EngineWorker(Tool):

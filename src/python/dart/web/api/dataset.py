@@ -6,13 +6,14 @@ from flask.ext.jsontools import jsonapi
 from dart.model.dataset import Dataset
 from dart.service.dataset import DatasetService
 from dart.service.filter import FilterService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 from dart.util.dataset_guess import infer_dataset_data
 
 api_dataset_bp = Blueprint('api_dataset', __name__)
 
 
 @api_dataset_bp.route('/dataset', methods=['POST'])
+@log_request_id
 @accounting_track
 @jsonapi
 def post_dataset():
@@ -20,6 +21,7 @@ def post_dataset():
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['GET'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -28,6 +30,7 @@ def get_dataset(dataset):
 
 
 @api_dataset_bp.route('/dataset/guess', methods=['GET'])
+@log_request_id
 @accounting_track
 @jsonapi
 def get_dataset_guess():
@@ -38,6 +41,7 @@ def get_dataset_guess():
 
 
 @api_dataset_bp.route('/dataset', methods=['GET'])
+@log_request_id
 @accounting_track
 @jsonapi
 def find_datasets():
@@ -54,6 +58,7 @@ def find_datasets():
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['PUT'])
+@log_request_id
 @accounting_track
 @fetch_model
 @jsonapi
@@ -62,6 +67,7 @@ def put_dataset(dataset):
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

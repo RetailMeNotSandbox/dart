@@ -1,6 +1,6 @@
 import copy
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import traceback
 from dart.context.database import db
 from dart.context.locator import injectable
@@ -15,7 +15,7 @@ from dart.model.workflow import Workflow
 from dart.trigger.super import super_trigger
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 @injectable

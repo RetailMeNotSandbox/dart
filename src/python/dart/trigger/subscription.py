@@ -1,11 +1,11 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import math
 
 from dart.context.locator import injectable
 from dart.model.trigger import TriggerType, TriggerState
 from dart.trigger.base import TriggerProcessor, execute_trigger
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 subscription_batch_trigger = TriggerType(

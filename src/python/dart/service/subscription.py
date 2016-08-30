@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from datetime import datetime
 import boto
@@ -19,7 +19,7 @@ from dart.util.s3 import yield_s3_keys, get_bucket, get_s3_path
 
 
 _batch_size = 1000
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 @injectable

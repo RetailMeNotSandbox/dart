@@ -1,15 +1,16 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
+import uuid
 import traceback
 from functools import wraps
 
-from flask import abort, current_app, request
+from flask import abort, current_app, request, g
 
 from dart.context.locator import injectable
 from dart.service.accounting import AccountingService
 from dart.web.api.utils import generate_accounting_event
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 @injectable
 class EntityLookupService(object):
@@ -73,5 +74,42 @@ def accounting_track(f):
             _logger.error(json.dumps(traceback.format_exc()))
 
         return rv
+
+    return wrapper
+
+
+
+# Generate a new request ID, optionally including an original request ID
+def generate_request_id(original_id=''):
+    new_id = uuid.uuid4()
+
+    if original_id:
+        new_id = "{},{}".format(original_id, new_id)
+
+    return new_id
+
+# Returns the current request ID or a new one if there is none
+# In order of preference:
+#   * If we've already created a request ID and stored it in the flask.g context local, use that
+#   * If a client has passed in the X-Request-Id header, create a new ID with that prepended
+#   * Otherwise, generate a request ID and store it in flask.g.request_id
+def set_request_id(func_name):
+    if getattr(g, 'request_id', None):
+        return g.request_id
+
+    headers = request.headers
+    original_request_id = headers.get("X-Request-Id")
+    new_uuid = generate_request_id(original_request_id)
+    g.request_id = new_uuid
+
+    _logger.info("%s: request_id=%s" % (func_name, new_uuid))
+    return new_uuid
+
+# This decorator's job is to add a request_id to the flask context (so it can be logged).
+def log_request_id(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        set_request_id(f.func_name)
+        return f(*args, **kwargs)
 
     return wrapper

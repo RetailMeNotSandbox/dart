@@ -1,7 +1,7 @@
-import logging
+from dart.util.logging_utils import DartLogger
 from dart.engine.dynamodb.admin.table import DynamoDBTable
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def delete_table(dynamodb_engine, datastore, action):

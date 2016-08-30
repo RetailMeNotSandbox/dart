@@ -1,11 +1,11 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 from dart.client.python.dart_client import Dart
 from dart.config.config import configuration
 from dart.engine.emr.metadata import EmrActionTypes
 from dart.model.engine import Engine, EngineData
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def add_emr_engine(config):

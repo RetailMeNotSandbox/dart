@@ -1,11 +1,11 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import logging.config
 
 from dart.message.subscription_listener import SubscriptionListener
 from dart.tool.tool_runner import Tool
 from dart.worker.worker import Worker
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class SubscriptionWorker(Tool):

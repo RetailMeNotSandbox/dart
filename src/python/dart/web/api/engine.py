@@ -1,6 +1,6 @@
 import json
 
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, current_app, g
 from flask.ext.jsontools import jsonapi
 
 from dart.message.trigger_proxy import TriggerProxy
@@ -13,12 +13,13 @@ from dart.service.engine import EngineService
 from dart.service.filter import FilterService
 from dart.service.trigger import TriggerService
 from dart.service.workflow import WorkflowService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 api_engine_bp = Blueprint('api_engine', __name__)
 
 
 @api_engine_bp.route('/engine', methods=['POST'])
+@log_request_id
 @jsonapi
 def post_engine():
     engine = engine_service().save_engine(Engine.from_dict(request.get_json()))
@@ -26,6 +27,7 @@ def post_engine():
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['GET'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -53,6 +55,7 @@ def get_engine(engine):
 
 
 @api_engine_bp.route('/engine', methods=['GET'])
+@log_request_id
 @accounting_track
 @jsonapi
 def find_engines():
@@ -81,6 +84,7 @@ def find_engines():
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -92,6 +96,7 @@ def put_engine(engine):
 
 
 @api_engine_bp.route('/engine/action/<action>/checkout', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -108,6 +113,7 @@ def action_checkout(action):
 
 
 @api_engine_bp.route('/engine/action/<action>/checkin', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -147,6 +153,7 @@ def validate_engine_action(action, state):
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -156,6 +163,7 @@ def delete_engine(engine):
 
 
 @api_engine_bp.route('/engine/<engine>/subgraph_definition', methods=['POST'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -167,6 +175,7 @@ def post_subgraph_definition(engine):
 
 
 @api_engine_bp.route('/subgraph_definition/<subgraph_definition>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_subgraph_definition(subgraph_definition):
@@ -174,6 +183,7 @@ def get_subgraph_definition(subgraph_definition):
 
 
 @api_engine_bp.route('/engine/<engine>/subgraph_definition', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_subgraph_definitions(engine):
@@ -181,6 +191,7 @@ def get_subgraph_definitions(engine):
 
 
 @api_engine_bp.route('/subgraph_definition/<subgraph_definition>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

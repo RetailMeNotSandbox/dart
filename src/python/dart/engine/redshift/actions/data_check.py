@@ -1,9 +1,9 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.engine.redshift.admin.cluster import RedshiftCluster
 from dart.engine.redshift.admin.utils import sanitized_query
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def data_check(redshift_engine, datastore, action):

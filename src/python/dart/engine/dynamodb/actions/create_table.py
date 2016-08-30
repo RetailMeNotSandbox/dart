@@ -1,9 +1,9 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.engine.dynamodb.admin.table import DynamoDBTable
 from dart.engine.dynamodb.mappings import mapped_column_type
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def create_table(dynamodb_engine, datastore, action):

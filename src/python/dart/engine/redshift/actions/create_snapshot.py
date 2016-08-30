@@ -1,8 +1,7 @@
-import logging
+from dart.util.logging_utils import DartLogger
 from dart.engine.redshift.admin.cluster import RedshiftCluster
 
-
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def create_snapshot(redshift_engine, datastore, action):

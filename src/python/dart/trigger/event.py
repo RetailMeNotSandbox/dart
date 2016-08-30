@@ -1,11 +1,11 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.context.locator import injectable
 from dart.model.event import EventState
 from dart.model.trigger import TriggerType
 from dart.trigger.base import TriggerProcessor, execute_trigger
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 event_trigger = TriggerType(

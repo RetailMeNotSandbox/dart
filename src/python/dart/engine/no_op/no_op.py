@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 import time
 import traceback
@@ -8,7 +8,7 @@ from dart.engine.no_op.metadata import NoOpActionTypes
 from dart.model.engine import ActionResult, ActionResultState
 from dart.tool.tool_runner import Tool
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class NoOpEngine(object):

@@ -1,10 +1,10 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 import subprocess
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def call(cmd):

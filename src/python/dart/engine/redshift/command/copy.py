@@ -1,6 +1,6 @@
 from itertools import islice
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 import tempfile
 
@@ -23,7 +23,7 @@ core_counts_by_instance_type = {
 }
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def copy_from_s3(dart, datastore, action, dataset, conn, batch_size, s3_path_and_updated_generator):

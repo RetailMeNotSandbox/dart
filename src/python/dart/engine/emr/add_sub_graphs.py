@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 from dart.client.python.dart_client import Dart
 from dart.config.config import configuration
@@ -10,7 +10,7 @@ from dart.model.trigger import Trigger, TriggerData
 from dart.model.workflow import Workflow, WorkflowData
 from dart.trigger.subscription import subscription_batch_trigger
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def add_emr_engine_sub_graphs(config):

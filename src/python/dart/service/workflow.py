@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import logging
+from dart.util.logging_utils import DartLogger
 from sqlalchemy import DateTime, desc
 from dart.context.locator import injectable
 from dart.model.action import ActionState
@@ -14,7 +14,7 @@ from dart.service.patcher import patch_difference, retry_stale_data
 from dart.util.rand import random_id
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 @injectable

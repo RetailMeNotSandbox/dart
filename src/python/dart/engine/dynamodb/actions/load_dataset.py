@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import time
 from dart.engine.dynamodb.admin.table import DynamoDBTable
 
@@ -6,7 +6,7 @@ from dart.engine.emr.actions.load_dataset import load_dataset_s3_path_and_file_s
     prepare_load_dataset_steps
 from dart.engine.emr.actions.start_datastore import prepare_bootstrap_actions, prepare_instance_groups, create_cluster
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def load_dataset(dynamodb_engine, datastore, action):

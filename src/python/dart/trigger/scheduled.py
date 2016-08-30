@@ -1,5 +1,5 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 
 import boto3
 import jsonpatch
@@ -10,7 +10,7 @@ from dart.message.call import TriggerCall
 from dart.trigger.base import TriggerProcessor, execute_trigger
 from dart.model.exception import DartValidationException
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 scheduled_trigger = TriggerType(

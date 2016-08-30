@@ -1,10 +1,10 @@
-import logging
+from dart.util.logging_utils import DartLogger
 from mailer import Mailer, Message
 from retrying import retry
 from dart.context.locator import injectable
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 @injectable

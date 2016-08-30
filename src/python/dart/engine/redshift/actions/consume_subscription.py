@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.engine.redshift.admin.cluster import RedshiftCluster
 from dart.engine.redshift.command.copy import copy_from_s3, core_counts_by_instance_type
@@ -6,7 +6,7 @@ from dart.engine.redshift.command.ddl import create_schemas_and_tables, create_t
     get_tracking_schema_and_table_name
 from dart.model.subscription import SubscriptionElementState
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def consume_subscription(redshift_engine, datastore, action):

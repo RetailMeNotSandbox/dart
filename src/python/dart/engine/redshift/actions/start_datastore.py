@@ -1,8 +1,8 @@
-import logging
+from dart.util.logging_utils import DartLogger
 from dart.engine.redshift.admin.cluster import RedshiftCluster
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def start_datastore(redshift_engine, datastore, action):

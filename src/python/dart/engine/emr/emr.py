@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 import traceback
 
@@ -19,7 +19,7 @@ from dart.engine.emr.metadata import EmrActionTypes
 from dart.model.engine import ActionResult, ActionResultState, ConsumeSubscriptionResultState
 from dart.tool.tool_runner import Tool
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class EmrEngine(object):

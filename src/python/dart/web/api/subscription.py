@@ -7,13 +7,14 @@ from jsonpatch import JsonPatch
 from dart.model.subscription import Subscription, SubscriptionState, SubscriptionElementState
 from dart.service.filter import FilterService
 from dart.service.subscription import SubscriptionService, SubscriptionElementService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 
 api_subscription_bp = Blueprint('api_subscription', __name__)
 
 
 @api_subscription_bp.route('/dataset/<dataset>/subscription', methods=['POST'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -25,6 +26,7 @@ def post_subscription(dataset):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_subscription(subscription):
@@ -32,6 +34,7 @@ def get_subscription(subscription):
 
 
 @api_subscription_bp.route('/subscription', methods=['GET'])
+@log_request_id
 @jsonapi
 def find_subscriptions():
     limit = int(request.args.get('limit', 20))
@@ -47,6 +50,7 @@ def find_subscriptions():
 
 
 @api_subscription_bp.route('/subscription/<subscription>/element_stats', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_subscription_element_stats(subscription):
@@ -55,6 +59,7 @@ def get_subscription_element_stats(subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>/elements', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def find_subscription_elements(subscription):
@@ -69,6 +74,7 @@ def find_subscription_elements(subscription):
 
 
 @api_subscription_bp.route('/action/<action>/subscription/elements', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def find_action_subscription_elements(action):
@@ -109,6 +115,7 @@ def subscription_elements(action_id, state, subscription_id, gte_processed=None,
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -118,6 +125,7 @@ def put_subscription(subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['PATCH'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -146,6 +154,7 @@ def update_subscription(subscription, updated_subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

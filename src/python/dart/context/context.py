@@ -1,4 +1,4 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import os
 from pydoc import locate
 
@@ -7,7 +7,7 @@ import pinject
 from dart.context.locator import find_injectable_classes
 from dart.util.strings import to_snake_case
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class AppContext(object):

@@ -1,5 +1,5 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import traceback
 import urllib
 
@@ -8,7 +8,7 @@ from dart.message.call import SubscriptionCall
 from dart.model.subscription import SubscriptionState
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 @injectable

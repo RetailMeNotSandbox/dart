@@ -8,12 +8,13 @@ from dart.model.datastore import Datastore, DatastoreState
 from dart.service.action import ActionService
 from dart.service.datastore import DatastoreService
 from dart.service.filter import FilterService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 api_datastore_bp = Blueprint('api_datastore', __name__)
 
 
 @api_datastore_bp.route('/datastore', methods=['POST'])
+@log_request_id
 @accounting_track
 @jsonapi
 def post_datastore():
@@ -21,6 +22,7 @@ def post_datastore():
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_datastore(datastore):
@@ -28,6 +30,7 @@ def get_datastore(datastore):
 
 
 @api_datastore_bp.route('/datastore', methods=['GET'])
+@log_request_id
 @jsonapi
 def find_datastores():
     limit = int(request.args.get('limit', 20))
@@ -43,6 +46,7 @@ def find_datastores():
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -52,6 +56,7 @@ def put_datastore(datastore):
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['PATCH'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -86,6 +91,7 @@ def update_datastore(datastore, updated_datastore):
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

@@ -1,9 +1,9 @@
-import logging
+from dart.util.logging_utils import DartLogger
 import boto3
 
 from dart.util.s3 import get_bucket_name, get_key_name
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def copy(s3_engine, datastore, action):

@@ -1,10 +1,10 @@
 import argparse
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.service.secrets import Secrets
 from dart.tool.tool_runner import Tool
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class PutSecretTool(Tool):

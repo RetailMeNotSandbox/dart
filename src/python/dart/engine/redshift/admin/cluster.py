@@ -1,5 +1,5 @@
 from datetime import datetime
-import logging
+from dart.util.logging_utils import DartLogger
 
 import boto3
 from botocore.exceptions import ClientError, WaiterError
@@ -7,7 +7,7 @@ from retrying import retry
 import sqlalchemy
 from dart.model.datastore import Datastore
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 def _retry_waiter_error(exception):

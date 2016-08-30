@@ -1,5 +1,5 @@
 import json
-import logging
+from dart.util.logging_utils import DartLogger
 import traceback
 
 from dart.context.locator import injectable
@@ -11,8 +11,7 @@ from dart.model.workflow import WorkflowInstanceState, WorkflowState, OnFailure 
 from dart.trigger.subscription import subscription_batch_trigger
 from dart.trigger.super import super_trigger
 
-_logger = logging.getLogger(__name__)
-
+_logger = DartLogger(__name__)
 
 @injectable
 class TriggerListener(object):

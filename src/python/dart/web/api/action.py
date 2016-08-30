@@ -11,12 +11,13 @@ from dart.service.action import ActionService
 from dart.service.datastore import DatastoreService
 from dart.service.filter import FilterService
 from dart.service.order_by import OrderByService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 api_action_bp = Blueprint('api_action', __name__)
 
 
 @api_action_bp.route('/datastore/<datastore>/action', methods=['POST'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -40,6 +41,7 @@ def post_datastore_actions(datastore):
 
 
 @api_action_bp.route('/workflow/<workflow>/action', methods=['POST'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -63,6 +65,7 @@ def post_workflow_actions(workflow):
 
 
 @api_action_bp.route('/action', methods=['GET'])
+@log_request_id
 @jsonapi
 def get_datastore_actions():
     limit = int(request.args.get('limit', 20))
@@ -86,6 +89,7 @@ def get_datastore_actions():
 
 
 @api_action_bp.route('/action/<action>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_action(action):
@@ -93,6 +97,7 @@ def get_action(action):
 
 
 @api_action_bp.route('/action/<action>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -102,6 +107,7 @@ def put_action(action):
 
 
 @api_action_bp.route('/action/<action>', methods=['PATCH'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -131,6 +137,7 @@ def update_action(action, updated_action):
 
 
 @api_action_bp.route('/action/<action>', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

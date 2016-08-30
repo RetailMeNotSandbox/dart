@@ -1,3 +1,5 @@
+from dart.util.logging_utils import DartLogger
+
 import json
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
@@ -10,13 +12,15 @@ from dart.service.action import ActionService
 from dart.service.filter import FilterService
 from dart.service.workflow import WorkflowService
 from dart.service.trigger import TriggerService
-from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.web.api.entity_lookup import fetch_model, accounting_track, log_request_id
 
 
 api_workflow_bp = Blueprint('api_workflow', __name__)
+_logger = DartLogger(__name__)
 
 
 @api_workflow_bp.route('/datastore/<datastore>/workflow', methods=['POST'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -33,6 +37,7 @@ def post_workflow(datastore):
 
 
 @api_workflow_bp.route('/workflow', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def find_workflows():
@@ -49,6 +54,7 @@ def find_workflows():
 
 
 @api_workflow_bp.route('/workflow/<workflow>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_workflow(workflow):
@@ -56,6 +62,7 @@ def get_workflow(workflow):
 
 
 @api_workflow_bp.route('/workflow/<workflow>/instance', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def find_workflow_instances(workflow):
@@ -63,6 +70,7 @@ def find_workflow_instances(workflow):
 
 
 @api_workflow_bp.route('/workflow/instance/<workflow_instance>', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def get_workflow_instance(workflow_instance):
@@ -70,6 +78,7 @@ def get_workflow_instance(workflow_instance):
 
 
 @api_workflow_bp.route('/workflow/instance', methods=['GET'])
+@log_request_id
 @fetch_model
 @jsonapi
 def find_instances():
@@ -91,7 +100,27 @@ def _find_workflow_instances(workflow=None):
     }
 
 
+@api_workflow_bp.route('/workflow/<workflow>/do-manual-trigger', methods=['POST'])
+@log_request_id
+@fetch_model
+@accounting_track
+@jsonapi
+def trigger_workflow(workflow):
+    """ :type workflow: dart.model.workflow.Workflow """
+    wf = workflow
+    if wf.data.state != WorkflowState.ACTIVE:
+        return {'results': 'ERROR', 'error_message': 'This workflow is not ACTIVE'}, 400, None
+
+    states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
+    if workflow_service().find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
+        return {'results': 'ERROR', 'error_message': 'Max concurrency reached: %s' % wf.data.concurrency}, 400, None
+
+    trigger_service().trigger_workflow_async(workflow.id)
+    return {'results': 'OK'}
+
+
 @api_workflow_bp.route('/workflow/<workflow>', methods=['PUT'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -101,6 +130,7 @@ def put_workflow(workflow):
 
 
 @api_workflow_bp.route('/workflow/<workflow>', methods=['PATCH'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi
@@ -108,6 +138,17 @@ def patch_workflow(workflow):
     """ :type workflow: dart.model.workflow.Workflow """
     p = JsonPatch(request.get_json())
     return update_workflow(workflow, Workflow.from_dict(p.apply(workflow.to_dict())))
+
+
+@api_workflow_bp.route('/workflow/<workflow>', methods=['DELETE'])
+@log_request_id
+@fetch_model
+@accounting_track
+@jsonapi
+def delete_workflow(workflow):
+    action_service().delete_actions_in_workflow(workflow.id)
+    workflow_service().delete_workflow(workflow.id)
+    return {'results': 'OK'}
 
 
 def update_workflow(workflow, updated_workflow):
@@ -131,35 +172,8 @@ def update_workflow(workflow, updated_workflow):
     return {'results': workflow_service().patch_workflow(workflow, sanitized_workflow).to_dict()}
 
 
-@api_workflow_bp.route('/workflow/<workflow>/do-manual-trigger', methods=['POST'])
-@fetch_model
-@accounting_track
-@jsonapi
-def trigger_workflow(workflow):
-    """ :type workflow: dart.model.workflow.Workflow """
-    wf = workflow
-    if wf.data.state != WorkflowState.ACTIVE:
-        return {'results': 'ERROR', 'error_message': 'This workflow is not ACTIVE'}, 400, None
-
-    states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
-    if workflow_service().find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
-        return {'results': 'ERROR', 'error_message': 'Max concurrency reached: %s' % wf.data.concurrency}, 400, None
-
-    trigger_service().trigger_workflow_async(workflow.id)
-    return {'results': 'OK'}
-
-
-@api_workflow_bp.route('/workflow/<workflow>', methods=['DELETE'])
-@fetch_model
-@accounting_track
-@jsonapi
-def delete_workflow(workflow):
-    action_service().delete_actions_in_workflow(workflow.id)
-    workflow_service().delete_workflow(workflow.id)
-    return {'results': 'OK'}
-
-
 @api_workflow_bp.route('/workflow/<workflow>/instance', methods=['DELETE'])
+@log_request_id
 @fetch_model
 @accounting_track
 @jsonapi

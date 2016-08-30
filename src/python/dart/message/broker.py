@@ -1,7 +1,8 @@
 from abc import abstractmethod
 import base64
 import json
-import logging
+from dart.util.logging_utils import DartLogger
+from flask import g
 from pydoc import locate
 import random
 from boto.regioninfo import RegionInfo
@@ -11,7 +12,7 @@ from dart.model.message import MessageState
 from dart.service.message import MessageService
 
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class MessageBroker(object):
@@ -55,7 +56,11 @@ class SqsJsonMessageBroker(MessageBroker):
         self._message_service = app_context.get(MessageService)
 
     def send_message(self, message):
+        _logger.info("sending message: %s" % message)
+
         # dart always uses the JSONMessage format
+        if (message and type(message) is dict and g.request_id is not None):
+            message['request_id'] = str(g.request_id)
         self.queue.write(JSONMessage(self.queue, message))
 
     def receive_message(self, handler, wait_time_seconds=20):
@@ -65,18 +70,27 @@ class SqsJsonMessageBroker(MessageBroker):
 
         sqs_message = self.queue.read(wait_time_seconds=wait_time_seconds)
         if not sqs_message:
+            _logger.debug("Receieving message. no message received.")
             return
 
         sqs_message_body = self._get_body(sqs_message)
+        request_id = ''
+        if ((g is not None) and (type(sqs_message_body) is dict) and (sqs_message_body.get('request_id') is not None)):
+            # We cannot use g.request_id since for Workers (Trigger, Subscription, Engine do not have an app context)
+            request_id = sqs_message_body.get('request_id')
+
         message = self._message_service.get_message(sqs_message.id, raise_when_missing=False)
         previous_handler_failed = False
         result_state = MessageState.COMPLETED
         if not message:
+            _logger.warn("%s Receieving message. The message was not found in message table. Saving sqs_message_body %s" % (request_id, json.dumps(sqs_message_body)))
             message = self._message_service.save_message(sqs_message.id, json.dumps(sqs_message_body), MessageState.RUNNING)
 
         elif message:
+
+            _logger.info("%s Receieving message: %s" % (request_id, message))
             if message.state in [MessageState.COMPLETED, MessageState.FAILED]:
-                _logger.warn('bailing on sqs message with id=%s because it was redelivered' % sqs_message.id)
+                _logger.warn('%s bailing on sqs message with id=%s because it was redelivered' % (request_id, sqs_message.id))
                 self.queue.delete_message(sqs_message)
                 return
 

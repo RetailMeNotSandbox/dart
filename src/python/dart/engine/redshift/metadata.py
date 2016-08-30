@@ -1,8 +1,8 @@
-import logging
+from dart.util.logging_utils import DartLogger
 
 from dart.model.action import ActionType
 
-_logger = logging.getLogger(__name__)
+_logger = DartLogger(__name__)
 
 
 class RedshiftActionTypes(object):
