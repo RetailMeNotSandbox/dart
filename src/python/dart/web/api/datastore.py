@@ -64,8 +64,9 @@ def patch_datastore(datastore):
 def update_datastore(datastore, updated_datastore):
     if datastore.data.state == DatastoreState.TEMPLATE and updated_datastore.data.state != DatastoreState.TEMPLATE:
         return {'results': 'ERROR', 'error_message': 'TEMPLATE state cannot be changed'}, 400, None
-    if updated_datastore.data.state not in [DatastoreState.ACTIVE, DatastoreState.INACTIVE, DatastoreState.DONE]:
-        return {'results': 'ERROR', 'error_message': 'state must be ACTIVE, INACTIVE, or DONE'}, 400, None
+    if updated_datastore.data.state not in [DatastoreState.ACTIVE, DatastoreState.INACTIVE,
+                                            DatastoreState.DONE, DatastoreState.TEMPLATE]:
+        return {'results': 'ERROR', 'error_message': 'state must be ACTIVE, INACTIVE, DONE, or TEMPLATE'}, 400, None
 
     # only allow updating fields that are editable
     sanitized_datastore = datastore.copy()
