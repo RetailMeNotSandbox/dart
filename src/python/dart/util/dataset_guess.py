@@ -108,7 +108,7 @@ def get_ascii_guesses(preview, stream, chunk_size, max_lines):
             break
         data += chunk
         if '\n' in data:
-            guesses, data, lines_read, lines_read = analyze_data(data, lines_read, max_lines, first_row, guesses,dialect, has_header)
+            guesses, data, lines_read = analyze_data(data, lines_read, max_lines, first_row, guesses, dialect, has_header)
             first_row = False
             if lines_read >= max_lines:
                 return guesses, has_header, COMPRESSION_TYPE, dialect
@@ -148,7 +148,7 @@ def get_gzip_guesses(preview, stream, chunk_size, max_lines):
             break
         data += d.decompress(chunk)
         if '\n' in data:
-            guesses, data, lines_read = analyze_data(data, lines_read, max_lines, first_row, guesses,dialect, has_header)
+            guesses, data, lines_read = analyze_data(data, lines_read, max_lines, first_row, guesses, dialect, has_header)
             first_row = False
             if lines_read >= max_lines:
                 return guesses, has_header, COMPRESSION_TYPE, dialect
