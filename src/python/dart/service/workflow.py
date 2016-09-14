@@ -46,7 +46,7 @@ class WorkflowService(object):
         return workflow
 
     @staticmethod
-    def save_workflow_instance(workflow, trigger_type, trigger_id, state):
+    def save_workflow_instance(workflow, trigger_type, trigger_id, state, retry_num=0):
         """ :type workflow: dart.model.workflow.Workflow
             :type trigger_type: dart.model.trigger.TriggerType """
         wf_instance_dao = WorkflowInstanceDao()
@@ -60,6 +60,7 @@ class WorkflowService(object):
             trigger_id=trigger_id,
             queued_time=datetime.now(),
             tags=wf_data.tags,
+            retry_num=retry_num,
         )
         wf_instance_dao.data = data.to_dict()
         db.session.add(wf_instance_dao)
@@ -237,7 +238,7 @@ class WorkflowService(object):
             workflow_instance.data.error_message = error_message
         return patch_difference(WorkflowInstanceDao, source_workflow_instance, workflow_instance, commit_changes)
 
-    def run_triggered_workflow(self, workflow_id, trigger_type, trigger_id=None):
+    def run_triggered_workflow(self, workflow_id, trigger_type, trigger_id=None, retry_num=0):
         wf = self.get_workflow(workflow_id, raise_when_missing=False)
         if not wf:
             _logger.info('workflow (id=%s) not found' % workflow_id)
@@ -251,7 +252,13 @@ class WorkflowService(object):
             _logger.info('workflow (id=%s) has already reached max concurrency of %s' % (wf.id, wf.data.concurrency))
             return
 
-        wf_instance = self.save_workflow_instance(wf, trigger_type, trigger_id, WorkflowInstanceState.QUEUED)
+        wf_instance = self.save_workflow_instance(
+            wf,
+            trigger_type,
+            trigger_id,
+            WorkflowInstanceState.QUEUED,
+            retry_num=retry_num,
+        )
 
         datastore = self._datastore_service.get_datastore(wf.data.datastore_id, raise_when_missing=False)
         if not datastore:
