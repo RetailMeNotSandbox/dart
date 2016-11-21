@@ -1,6 +1,7 @@
 import json
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 from jsonpatch import JsonPatch
 
 from dart.model.event import Event
@@ -12,6 +13,8 @@ api_event_bp = Blueprint('api_event', __name__)
 
 
 @api_event_bp.route('/event', methods=['POST'])
+@login_required
+@accounting_track
 @jsonapi
 def post_event():
     event = event_service().save_event(Event.from_dict(request.get_json()))
@@ -19,6 +22,7 @@ def post_event():
 
 
 @api_event_bp.route('/event/<event>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_event(event):
@@ -26,6 +30,7 @@ def get_event(event):
 
 
 @api_event_bp.route('/event', methods=['GET'])
+@login_required
 @jsonapi
 def find_events():
     limit = int(request.args.get('limit', 20))
@@ -41,6 +46,7 @@ def find_events():
 
 
 @api_event_bp.route('/event/<event>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -50,6 +56,7 @@ def put_event(event):
 
 
 @api_event_bp.route('/event/<event>', methods=['PATCH'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -74,6 +81,7 @@ def update_event(event, updated_event):
 
 
 @api_event_bp.route('/event/<event>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

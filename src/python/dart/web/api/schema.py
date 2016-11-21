@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, request
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 
 from dart.schema.action import action_schema
 from dart.schema.dataset import dataset_schema
@@ -20,24 +21,28 @@ api_schema_bp = Blueprint('api_schema', __name__)
 
 
 @api_schema_bp.route('/schema/engine', methods=['GET'])
+@login_required
 @jsonapi
 def get_engine_json_schema():
     return {'results': engine_schema()}
 
 
 @api_schema_bp.route('/schema/dataset', methods=['GET'])
+@login_required
 @jsonapi
 def get_dataset_json_schema():
     return {'results': dataset_schema()}
 
 
 @api_schema_bp.route('/schema/dataset/guess', methods=['GET'])
+@login_required
 @jsonapi
 def get_dataset_guess_schema():
     return {'results': dataset_guess_schema()}
 
 
 @api_schema_bp.route('/schema/engine/<engine_name>/datastore', methods=['GET'])
+@login_required
 @jsonapi
 def get_datastore_json_schema(engine_name):
     engine = engine_service().get_engine_by_name(engine_name)
@@ -47,6 +52,7 @@ def get_datastore_json_schema(engine_name):
 
 
 @api_schema_bp.route('/schema/datastore', methods=['GET'])
+@login_required
 @jsonapi
 def get_datastore_json_schema_empty():
     datastore_id = request.args.get('datastore_id')
@@ -59,6 +65,7 @@ def get_datastore_json_schema_empty():
 
 
 @api_schema_bp.route('/schema/action', methods=['GET'])
+@login_required
 @jsonapi
 def get_action_json_schema_empty():
     supported_action_type_params_schema = None
@@ -77,6 +84,7 @@ def get_action_json_schema_empty():
 
 
 @api_schema_bp.route('/schema/action/<action_name>', methods=['GET'])
+@login_required
 @jsonapi
 def get_action_json_schema(action_name):
     action_id = request.args.get('action_id')
@@ -115,24 +123,28 @@ def get_action_json_schema(action_name):
 
 
 @api_schema_bp.route('/schema/workflow', methods=['GET'])
+@login_required
 @jsonapi
 def get_workflow_json_schema():
     return {'results': workflow_schema()}
 
 
 @api_schema_bp.route('/schema/workflow/instance', methods=['GET'])
+@login_required
 @jsonapi
 def get_workflow_instance_json_schema():
     return {'results': workflow_instance_schema()}
 
 
 @api_schema_bp.route('/schema/trigger_type', methods=['GET'])
+@login_required
 @jsonapi
 def get_trigger_type_json_schema():
     return {'results': trigger_type_schema()}
 
 
 @api_schema_bp.route('/schema/trigger', methods=['GET'])
+@login_required
 @jsonapi
 def get_trigger_json_schema():
     trigger_type_name = request.args.get('trigger_type_name')
@@ -155,12 +167,14 @@ def get_trigger_json_schema():
 
 
 @api_schema_bp.route('/schema/event', methods=['GET'])
+@login_required
 @jsonapi
 def get_event_json_schema():
     return {'results': event_schema()}
 
 
 @api_schema_bp.route('/schema/subscription', methods=['GET'])
+@login_required
 @jsonapi
 def get_subscription_json_schema():
     return {'results': subscription_schema()}

@@ -1,5 +1,6 @@
 from sqlalchemy import cast, desc
 from sqlalchemy.dialects.postgresql import JSONB
+import uuid
 
 from dart.context.locator import injectable
 from dart.model.exception import DartValidationException
@@ -65,7 +66,14 @@ class TriggerService(object):
     def trigger_types(self):
         return [t.trigger_type() for t in self._trigger_processors.values()]
 
-    def save_trigger(self, trigger, commit_and_initialize=True, flush=False):
+    def save_trigger(self, trigger, commit_and_initialize=True, flush=False, user_id=None):
+        wf_uuid = uuid.uuid4().hex  # to avoid uuid serialization issues
+        trigger.data.tags = trigger.data.tags if (trigger.data.tags) else []
+        trigger.data.tags.append(wf_uuid)
+        if user_id:
+            trigger.data.user_id = user_id
+
+
         """ :type trigger: dart.model.trigger.Trigger """
         trigger_type_name = trigger.data.trigger_type_name
         if trigger_type_name == self._manual_trigger_processor.trigger_type().name:
@@ -197,8 +205,8 @@ class TriggerService(object):
         db.session.delete(trigger_dao)
         db.session.commit()
 
-    def trigger_workflow_async(self, workflow_id):
-        self._manual_trigger_processor.send_evaluation_message(workflow_id)
+    def trigger_workflow_async(self, workflow_json):
+        self._manual_trigger_processor.send_evaluation_message(workflow_json)
 
     def evaluate_subscription_triggers(self, subscription):
         """ :type subscription: dart.model.subscription.Subscription """

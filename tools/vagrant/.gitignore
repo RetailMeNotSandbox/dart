@@ -1,0 +1,8 @@
+.vagrant/
+dart/
+docker_files/docker-compose.yml
+docker_files/engine/
+docker_files/subscription/
+docker_files/trigger/
+docker_files/web/
+vagrant_scripts/additional_steps.sh

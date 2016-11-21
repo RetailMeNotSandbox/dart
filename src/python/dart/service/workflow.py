@@ -46,12 +46,22 @@ class WorkflowService(object):
         return workflow
 
     @staticmethod
-    def save_workflow_instance(workflow, trigger_type, trigger_id, state, retry_num=0):
+    def save_workflow_instance(workflow, trigger_type, trigger_id, state, log_info=None, retry_num=0):
         """ :type workflow: dart.model.workflow.Workflow
             :type trigger_type: dart.model.trigger.TriggerType """
         wf_instance_dao = WorkflowInstanceDao()
         wf_instance_dao.id = random_id()
         wf_data = workflow.data
+
+        wf_data_tags = wf_data.tags if(wf_data.tags) else []
+        if (log_info and log_info.get('wf_uuid')):
+            wf_data_tags.append(log_info.get('wf_uuid'))
+
+        user_id = 'anonymous'
+        if (log_info and log_info.get('user_id')):
+            user_id = log_info.get('user_id')
+
+
         data = WorkflowInstanceData(
             workflow_id=workflow.id,
             engine_name=wf_data.engine_name,
@@ -59,8 +69,9 @@ class WorkflowService(object):
             trigger_type=trigger_type.name,
             trigger_id=trigger_id,
             queued_time=datetime.now(),
-            tags=wf_data.tags,
-            retry_num=retry_num,
+            tags=wf_data_tags,
+            user_id=user_id,
+            retry_num = retry_num,
         )
         wf_instance_dao.data = data.to_dict()
         db.session.add(wf_instance_dao)
@@ -238,18 +249,19 @@ class WorkflowService(object):
             workflow_instance.data.error_message = error_message
         return patch_difference(WorkflowInstanceDao, source_workflow_instance, workflow_instance, commit_changes)
 
-    def run_triggered_workflow(self, workflow_id, trigger_type, trigger_id=None, retry_num=0):
-        wf = self.get_workflow(workflow_id, raise_when_missing=False)
+
+    def run_triggered_workflow(self, workflow_msg, trigger_type, trigger_id=None, retry_num=0):
+        wf = self.get_workflow(workflow_msg.get('workflow_id'), raise_when_missing=False)
         if not wf:
-            _logger.info('workflow (id=%s) not found' % workflow_id)
+            _logger.info('workflow (id={wf_id}) not found. log-info: {log_info}'.format(wf_id=workflow_msg.workflow_id, log_info=workflow_msg.get('log_info')))
             return
         if wf.data.state != WorkflowState.ACTIVE:
-            _logger.info('expected workflow (id=%s) to be in ACTIVE state' % wf.id)
+            _logger.info('expected workflow (id={wf_id}) to be in ACTIVE state. log-info: {log_info}'.format(wf_id=workflow_msg.workflow_id, log_info=workflow_msg.get('log_info')))
             return
 
         states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
         if self.find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
-            _logger.info('workflow (id=%s) has already reached max concurrency of %s' % (wf.id, wf.data.concurrency))
+            _logger.info('workflow (id={wf_id}) has already reached max concurrency of {concurrency}. log-info: {log_info}'.format(wf_id=wf.id, concurrency=wf.data.concurrency, log_info=workflow_msg.get('log_info')))
             return
 
         wf_instance = self.save_workflow_instance(
@@ -257,12 +269,15 @@ class WorkflowService(object):
             trigger_type,
             trigger_id,
             WorkflowInstanceState.QUEUED,
+            workflow_msg.get('log_info'),
             retry_num=retry_num,
         )
 
         datastore = self._datastore_service.get_datastore(wf.data.datastore_id, raise_when_missing=False)
         if not datastore:
-            error_msg = 'the datastore (id=%s) defined for this workflow could not be found' % wf.data.datastore_id
+            error_msg = 'the datastore (id={ds_id}) defined for this workflow could not be found. log-info: {log_info}'.\
+                format(ds_id=wf.data.datastore_id, log_info=workflow_msg.get('log_info'))
+            _logger.error(error_msg)
             self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.FAILED, error_message=error_msg)
             return
 
@@ -275,7 +290,9 @@ class WorkflowService(object):
                 workflow_datastore_id=datastore.id,
             )
         if datastore.data.state != DatastoreState.ACTIVE:
-            error_msg = 'expected datastore (id=%s) to be in ACTIVE state' % wf.id
+            error_msg = 'expected datastore (id={ds_id}) to be in ACTIVE state, log-info: {log_info}'.\
+              format(ds_id=wf.data.datastore_id, log_info=workflow_msg.get('log_info'))
+            _logger.error(error_msg)
             self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.FAILED, error_message=error_msg)
             return
 
@@ -283,7 +300,9 @@ class WorkflowService(object):
 
         actions = self._action_service.find_actions(workflow_id=wf.id, states=[ActionState.TEMPLATE])
         if len(actions) <= 0:
-            error_msg = 'no TEMPLATE actions were found for this workflow'
+            error_msg = 'no TEMPLATE actions were found for workflow id={wf_id}. log-info:{log_info}'.\
+                format(wf_id=wf.id, log_info=workflow_msg.get('log_info'))
+            _logger.error(error_msg)
             self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.FAILED, error_message=error_msg)
             return
 
@@ -291,6 +310,7 @@ class WorkflowService(object):
         actions[-1].data.last_in_workflow = True
 
         self._action_service.clone_workflow_actions(
+            log_info=workflow_msg.get('log_info'),
             source_actions=actions,
             target_datastore_id=datastore.id,
             datastore_id=datastore.id,
@@ -298,4 +318,4 @@ class WorkflowService(object):
             workflow_instance_id=wf_instance.id,
         )
 
-        self._trigger_proxy.try_next_action(datastore.id)
+        self._trigger_proxy.try_next_action({'datastore_id': datastore.id, 'log_info':workflow_msg.get('log_info')})

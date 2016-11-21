@@ -2,7 +2,9 @@ import json
 
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 from jsonpatch import JsonPatch
+from flask_login import current_user
 
 from dart.message.trigger_proxy import TriggerProxy
 from dart.model.action import Action, ActionState
@@ -17,6 +19,7 @@ api_action_bp = Blueprint('api_action', __name__)
 
 
 @api_action_bp.route('/datastore/<datastore>/action', methods=['POST'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -35,11 +38,12 @@ def post_datastore_actions(datastore):
 
     engine_name = datastore.data.engine_name
     saved_actions = [a.to_dict() for a in action_service().save_actions(actions, engine_name, datastore=datastore)]
-    trigger_proxy().try_next_action(datastore.id)
+    trigger_proxy().try_next_action({'datastore_id':datastore.id, 'log_info':{'user_id': current_user.email}})
     return {'results': saved_actions}
 
 
 @api_action_bp.route('/workflow/<workflow>/action', methods=['POST'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -63,6 +67,7 @@ def post_workflow_actions(workflow):
 
 
 @api_action_bp.route('/action', methods=['GET'])
+@login_required
 @jsonapi
 def get_datastore_actions():
     limit = int(request.args.get('limit', 20))
@@ -86,6 +91,7 @@ def get_datastore_actions():
 
 
 @api_action_bp.route('/action/<action>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_action(action):
@@ -93,6 +99,7 @@ def get_action(action):
 
 
 @api_action_bp.route('/action/<action>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -102,6 +109,7 @@ def put_action(action):
 
 
 @api_action_bp.route('/action/<action>', methods=['PATCH'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -131,6 +139,7 @@ def update_action(action, updated_action):
 
 
 @api_action_bp.route('/action/<action>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

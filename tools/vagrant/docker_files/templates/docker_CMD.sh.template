@@ -4,6 +4,13 @@ set -x
 set -e
 
 pip install -r {{ docker_code_dir }}/src/python/requirements.txt
+if [ -f /usr/bin/xmlsec1-config ]; then
+  # see https://github.com/onelogin/python-saml/issues/30
+  sed -i 's/the_flags="$the_flags  -D__XMLSEC_FUNCTION__=__FUNCTION__ -DXMLSEC_NO_GOST=1 -DXMLSEC_NO_XKMS=1 -DXMLSEC_DL_LIBLTDL=1 -I\/usr\/include\/xmlsec1   $the_xml_flags $the_xslt_flags $the_crypto_flags"/the_flags="$the_flags  -D__XMLSEC_FUNCTION__=__FUNCTION__ -DXMLSEC_NO_GOST=1 -DXMLSEC_NO_XKMS=1 -DXMLSEC_DL_LIBLTDL=1 -DXMLSEC_NO_SIZE_T -I\/usr\/include\/xmlsec1   $the_xml_flags $the_xslt_flags $the_crypto_flags"/g' /usr/bin/xmlsec1-config
+
+  pip uninstall -y dm.xmlsec.binding
+  pip install dm.xmlsec.binding
+fi
 
 {% for run in additional_run_steps %}
 {{ run }}

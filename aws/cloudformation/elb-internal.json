@@ -24,7 +24,7 @@
                     "PolicyNames": [ "DartWebVersionCookieStickinessPolicy" ]
                 } ],
                 "HealthCheck": {
-                    "Target": "HTTP:8080/",
+                    "Target": "HTTP:8080/info",
                     "HealthyThreshold": 2,
                     "UnhealthyThreshold": 7,
                     "Interval": 30,

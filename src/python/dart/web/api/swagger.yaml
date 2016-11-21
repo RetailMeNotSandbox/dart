@@ -26,9 +26,10 @@ produces:
 paths:
   /action:
     get:
+      operationId: listActions
       summary: "returns the actions matching the filters or all actions if no filters are specified"
       tags:
-        - "action"
+        - "Action"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -44,41 +45,33 @@ paths:
         "200":
           description: "returns the actions matching the filters or all actions if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Action"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedActionsResponse'
   /action/{action_id}:
-    parameters:
-      - name: "action_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getAction
       summary: "return the action"
       tags:
-        - "action"
+        - "Action"
+      parameters:
+        - name: "action_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: returns the action
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Action"
+            $ref: '#/definitions/ActionResponse'
     put:
+      operationId: updateAction
       summary: "update the action"
       tags:
-        - "action"
+        - "Action"
       parameters:
+        - name: "action_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "action"
           in: "body"
           required: true
@@ -88,39 +81,28 @@ paths:
         "200":
           description: returns the action
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Action"
+            $ref: '#/definitions/ActionResponse'
     patch:
+      operationId: patchAction
       summary: "patch the action using JSON Patch"
       tags:
-        - "action"
+        - "Action"
       parameters:
+        - name: "action_id"
+          type: "string"
+          in: "path"
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: returns the action
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Action"
+            $ref: '#/definitions/ActionResponse'
     delete:
+      operationId: deleteAction
       summary: "delete the action"
       tags:
-        - "action"
-      responses:
-        "200":
-          description: "returns a success message"
-          schema:
-            $ref: "#/definitions/OKResult"
-  /action/{action_id}/subscription/elements:
-    get:
-      summary: "get the subscription elements for an action"
-      tags:
-        - "action"
-        - "subscription"
+        - "Action"
       parameters:
         - name: "action_id"
           type: "string"
@@ -128,29 +110,38 @@ paths:
           required: true
       responses:
         "200":
+          description: "returns a success message"
+          schema:
+            $ref: "#/definitions/OKResponse"
+  /action/{action_id}/subscription/elements:
+    get:
+      operationId: listActionSubscriptionElements
+      summary: "get the subscription elements for an action"
+      tags:
+        - "Action"
+        - "SubscriptionElement"
+      parameters:
+        - name: "action_id"
+          type: "string"
+          in: "path"
+          required: true
+        - $ref: '#/parameters/limitParam'
+        - $ref: '#/parameters/offsetParam'
+      responses:
+        "200":
           description: "the subscription elements"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  type: object
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedSubscriptionElementsResponse'
         "400":
           description: "if the action doesn't have a subscription"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /dataset:
     get:
+      operationId: listDatasets
       summary: "returns the datasets matching the filters or all datasets if no filters are specified"
       tags:
-        - "dataset"
+        - "Dataset"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -159,22 +150,12 @@ paths:
         "200":
           description: "returns the datasets matching the filters or all datasets if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Dataset"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedDatasetsResponse'
     post:
+      operationId: createDataset
       summary: "create a dataset"
       tags:
-        - "dataset"
+        - "Dataset"
       parameters:
         - name: "dataset"
           in: "body"
@@ -185,15 +166,13 @@ paths:
         "200":
           description: returns the created Dataset
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Dataset"
+            $ref: '#/definitions/DatasetResponse'
   /dataset/guess:
     get:
+      operationId: guessDataset
       summary: "best guess of the dataset"
       tags:
-        - "dataset"
+        - "Dataset"
       parameters:
         - name: s3_path
           in: query
@@ -207,33 +186,33 @@ paths:
         "200":
           description: returns the dataset
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Dataset"
+            $ref: '#/definitions/DatasetResponse'
   /dataset/{dataset_id}:
-    parameters:
-      - name: "dataset_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getDataset
       summary: "get a dataset"
       tags:
-        - "dataset"
+        - "Dataset"
+      parameters:
+        - name: "dataset_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: returns the dataset
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Dataset"
+            $ref: '#/definitions/DatasetResponse'
     put:
+      operationId: updateDataset
       summary: "update a dataset"
       tags:
-        - "dataset"
+        - "Dataset"
       parameters:
+        - name: "dataset_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "dataset"
           in: "body"
           required: true
@@ -243,22 +222,29 @@ paths:
         "200":
           description: returns the dataset
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Dataset"
+            $ref: '#/definitions/DatasetResponse'
     delete:
+      operationId: deleteDataset
       summary: "delete a dataset"
       tags:
-        - "dataset"
+        - "Dataset"
+      parameters:
+        - name: "dataset_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /dataset/{dataset_id}/subscription:
     post:
+      operationId: createDatasetSubscription
       summary: "create a subscription to a dataset"
+      tags:
+        - "Dataset"
+        - "Subscription"
       parameters:
         - name: "dataset_id"
           type: "string"
@@ -273,12 +259,13 @@ paths:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/SubscriptionResponse"
   /datastore:
     post:
+      operationId: createDatastore
       summary: "create a datastore"
       tags:
-        - "datastore"
+        - "Datastore"
       parameters:
         - name: "datastore"
           in: "body"
@@ -289,14 +276,12 @@ paths:
         "200":
           description: returns the created datastore
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Datastore"
+            $ref: '#/definitions/DatastoreResponse'
     get:
-      summary: "find datastores"
+      operationId: listDatastores
+      summary: "list datastores"
       tags:
-        - "datastore"
+        - "Datastore"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -305,41 +290,33 @@ paths:
         "200":
           description: "returns the datastores matching the filters or all datastores if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Datastore"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedDatastoresResponse'
   /datastore/{datastore_id}:
-    parameters:
-      - name: "datastore_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getDatastore
       summary: "return the datastore"
       tags:
-        - "datastore"
+        - "Datastore"
+      parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: returns the datastore
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Datastore"
+            $ref: '#/definitions/DatastoreResponse'
     put:
+      operationId: updateDatastore
       summary: "update the datastore"
       tags:
-        - "datastore"
+        - "Datastore"
       parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "datastore"
           in: "body"
           required: true
@@ -349,53 +326,58 @@ paths:
         "200":
           description: returns the datastore
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Datastore"
+            $ref: '#/definitions/DatastoreResponse'
         "400":
           description: "datastore is not in a valid state"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     patch:
+      operationId: patchDatastore
       summary: "patch the datastore using JSON Patch"
       tags:
-        - "datastore"
+        - "Datastore"
       parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: returns the datastore
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Datastore"
+            $ref: '#/definitions/DatastoreResponse'
         "400":
           description: "datastore is not in a valid state"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     delete:
+      operationId: deleteDatastore
       summary: "delete the datastore"
       tags:
-        - "datastore"
+        - "Datastore"
+      parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /datastore/{datastore_id}/action:
-    parameters:
-      - name: "datastore_id"
-        type: "string"
-        in: "path"
-        required: true
     post:
-      summary: "create an action for a datastore"
+      operationId: createDatastoreActions
+      summary: "create actions for a datastore"
       tags:
-        - "datastore"
-        - "action"
+        - "Datastore"
+        - "Action"
       parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "actions"
           in: "body"
           required: true
@@ -413,23 +395,19 @@ paths:
         "200":
           description: "the created actions"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  $ref: "#/definitions/Action"
+            $ref: '#/definitions/ActionsResponse'
   /datastore/{datastore_id}/workflow:
-    parameters:
-      - name: "datastore_id"
-        type: "string"
-        in: "path"
-        required: true
     post:
+      operationId: createDatastoreWorkflow
       summary: "create a workflow associated with the datastore"
       tags:
-        - "datastore"
+        - "Datastore"
+        - "Workflow"
       parameters:
+        - name: "datastore_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "workflow"
           in: "body"
           required: true
@@ -439,15 +417,13 @@ paths:
         "200":
           description: returns the created Workflow
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Workflow"
+            $ref: '#/definitions/WorkflowResponse'
   /engine:
     get:
-      summary: "find engines"
+      operationId: listEngines
+      summary: "list engines"
       tags:
-        - "engine"
+        - "Engine"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -456,22 +432,12 @@ paths:
         "200":
           description: "returns the engines matching the filters or all engines if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Engine"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedEnginesResponse'
     post:
+      operationId: createEngine
       summary: "create an engine"
       tags:
-        - "engine"
+        - "Engine"
       parameters:
         - name: "engine"
           in: "body"
@@ -482,33 +448,33 @@ paths:
         "200":
           description: "the engine"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Engine"
+            $ref: '#/definitions/EngineResponse'
   /engine/{engine_id}:
-    parameters:
-      - name: "engine_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getEngine
       summary: "get an engine instance"
       tags:
-        - "engine"
+        - "Engine"
+      parameters:
+        - name: "engine_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the engine"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Engine"
+            $ref: '#/definitions/EngineResponse'
     put:
+      operationId: updateEngine
       summary: "update an engine"
       tags:
-        - "engine"
+        - "Engine"
       parameters:
+        - name: "engine_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "engine"
           in: "body"
           required: true
@@ -518,63 +484,67 @@ paths:
         "200":
           description: "the engine"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Engine"
+            $ref: '#/definitions/EngineResponse'
     delete:
+      operationId: deleteEngine
       summary: "delete an engine"
       tags:
-        - "engine"
+        - "Engine"
+      parameters:
+        - name: "engine_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /engine/{engine_id}/subgraph_definition:
-    parameters:
-      - name: "engine_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getEngineSubgraphDefinition
       summary: "return the subgraph definition for the engine"
       tags:
-        - "engine"
-        - "subgraph definition"
+        - "Engine"
+        - "SubgraphDefinition"
+      parameters:
+        - name: "engine_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the subgraph definition"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/SubGraphDefinition"
+            $ref: "#/definitions/SubgraphDefinitionResponse"
     post:
+      operationId: createEngineSubgraphDefinition
       summary: "create the subgraph definition for the engine"
       tags:
-        - "engine"
-        - "subgraph definition"
+        - "Engine"
+        - "SubgraphDefinition"
       parameters:
+        - name: "engine_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "subgraph_definition"
           in: "body"
           required: true
           schema:
-            $ref: "#/definitions/SubGraphDefinition"
+            $ref: "#/definitions/SubgraphDefinition"
       responses:
         "200":
           description: "the subgraph definition"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/SubGraphDefinition"
+            $ref: "#/definitions/SubgraphDefinitionResponse"
   /engine/action/{action_id}/checkout:
     put:
+      operationId: checkoutEngineAction
       summary: "Checkout the action"
       tags:
-        - "engine"
-        - "action"
+        - "Engine"
+        - "Action"
       parameters:
         - name: "action_id"
           type: "string"
@@ -584,21 +554,22 @@ paths:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/ActionContext"
+            $ref: "#/definitions/ActionContextResponse"
         "400":
           description: "engine action is not in a valid state"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
         "404":
           description: "engine or datastore not found"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /engine/action/{action_id}/checkin:
     put:
+      operationId: checkinEngineAction
       summary: "Checkin the action"
       tags:
-        - "engine"
-        - "action"
+        - "Engine"
+        - "Action"
       parameters:
         - name: "action_id"
           type: "string"
@@ -613,20 +584,21 @@ paths:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
         "400":
           description: "engine action is not in a valid state"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
         "404":
           description: "engine or datastore not found"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /event:
     post:
+      operationId: createEvent
       summary: "create an event"
       tags:
-        - "event"
+        - "Event"
       parameters:
         - name: "event"
           in: "body"
@@ -637,14 +609,12 @@ paths:
         "200":
           description: returns the event
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Event"
+            $ref: '#/definitions/EventResponse'
     get:
-      summary: "find events"
+      operationId: listEvents
+      summary: "list events"
       tags:
-        - "event"
+        - "Event"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -653,41 +623,33 @@ paths:
         "200":
           description: "returns the events matching the filters or all events if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Event"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedEventsResponse'
   /event/{event_id}:
-    parameters:
-      - name: "event_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getEvent
       summary: "get an event"
       tags:
-        - "event"
+        - "Event"
+      parameters:
+        - name: "event_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: returns the event
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Event"
+            $ref: '#/definitions/EventResponse'
     put:
+      operationId: updateEvent
       summary: "update an event"
       tags:
-        - "event"
+        - "Event"
       parameters:
+        - name: "event_id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "event"
           in: "body"
           required: true
@@ -697,39 +659,45 @@ paths:
         "200":
           description: returns the event
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Event"
+            $ref: '#/definitions/EventResponse'
     patch:
+      operationId: patchEvent
       summary: "patch update an event"
       tags:
-        - "event"
+        - "Event"
       parameters:
+        - name: "event_id"
+          type: "string"
+          in: "path"
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: returns the event
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Event"
+            $ref: '#/definitions/EventResponse'
     delete:
+      operationId: deleteEvent
       summary: "delete an event"
       tags:
-        - "event"
+        - "Event"
+      parameters:
+        - name: "event_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /graph/entity_identifiers:
     get:
+      operationId: getGraphEntityIdentifiers
       summary: "get the graph entity identifiers"
       tags:
-        - "graph"
-        - "graph entity identifier"
+        - "Graph"
+        - "GraphEntityIdentifier"
       parameters:
         - name: search
           in: query
@@ -739,20 +707,18 @@ paths:
         "200":
           description: "returns the graph entity identifiers"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntityIdentifier"
+            $ref: '#/definitions/GraphEntityIdentifiersResponse'
         "400":
           description: "error occurred"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /graph/action/{action_id}:
     get:
-      summary: "get the action graph entities"
+      operationId: getActionGraphEntity
+      summary: "get the action graph entity"
       tags:
-        - "graph"
-        - "action"
+        - "Graph"
+        - "Action"
       parameters:
         - name: action_id
           in: path
@@ -760,18 +726,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/dataset/{dataset_id}:
     get:
-      summary: "get the dataset graph entities"
+      operationId: getDatasetGraphEntity
+      summary: "get the dataset graph entity"
       tags:
-        - "graph"
-        - "dataset"
+        - "Graph"
+        - "Dataset"
       parameters:
         - name: dataset_id
           in: path
@@ -779,18 +743,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/datastore/{datastore_id}:
     get:
-      summary: "get the datastore graph entities"
+      operationId: getDatastoreGraphEntity
+      summary: "get the datastore graph entity"
       tags:
-        - "graph"
-        - "datastore"
+        - "Graph"
+        - "Datastore"
       parameters:
         - name: datastore_id
           in: path
@@ -798,18 +760,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/event/{event_id}:
     get:
-      summary: "get the event graph entities"
+      operationId: getEventGraphEntity
+      summary: "get the event graph entity"
       tags:
-        - "graph"
-        - "event"
+        - "Graph"
+        - "Event"
       parameters:
         - name: event_id
           in: path
@@ -817,18 +777,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/subscription/{subscription_id}:
     get:
-      summary: "get the subscription graph entities"
+      operationId: getSubscriptionGraphEntity
+      summary: "get the subscription graph entity"
       tags:
-        - "graph"
-        - "subscription"
+        - "Graph"
+        - "Subscription"
       parameters:
         - name: subscription_id
           in: path
@@ -836,18 +794,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/trigger/{trigger_id}:
     get:
-      summary: "get the trigger graph entities"
+      operationId: getTriggerGraphEntity
+      summary: "get the trigger graph entity"
       tags:
-        - "graph"
-        - "trigger"
+        - "Graph"
+        - "Trigger"
       parameters:
         - name: trigger_id
           in: path
@@ -855,18 +811,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/workflow/{workflow_id}:
     get:
-      summary: "get the workflow graph entities"
+      operationId: getWorkflowGraphEntity
+      summary: "get the workflow graph entity"
       tags:
-        - "graph"
-        - "workflow"
+        - "Graph"
+        - "Workflow"
       parameters:
         - name: workflow_id
           in: path
@@ -874,18 +828,16 @@ paths:
           type: string
       responses:
         "200":
-          description: "returns the graph entities"
+          description: "returns the graph entity"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/GraphEntityResponse'
   /graph/sub_graph:
     get:
+      operationId: getSubgraphGraphEntity
       summary: "get the sub graphs"
       tags:
-        - "graph"
-        - "subgraph"
+        - "Graph"
+        - "Subgraph"
       parameters:
         - name: related_type
           in: query
@@ -900,19 +852,16 @@ paths:
         "200":
           description: "returns the sub graphs"
           schema:
-            type: object
-            properties:
-              results:
-                type: object
-                #$ref: "#/definitions/SubGraph"
+            $ref: '#/definitions/ObjectResponse'
         "404":
           description: "error occurred"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     post:
+      operationId: createSubgraphGraphEntities
       summary: "create a new sub graph"
       tags:
-        - "graph"
+        - "Graph"
       parameters:
         - name: debug
           in: query
@@ -928,64 +877,55 @@ paths:
         "200":
           description: "returns the graph entities"
           schema:
-            type: object
-            properties:
-              results:
-                type: object
-                #$ref: "#/definitions/GraphEntity"
+            $ref: '#/definitions/ObjectResponse'
         "400":
           description: "error occurred"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/engine:
     get:
+      operationId: getEngineSchema
       summary: "get the engine JSON Schema"
       tags:
-        - "schema"
-        - "engine"
+        - "Schema"
+        - "Engine"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/dataset:
     get:
+      operationId: getDatasetSchema
       summary: "get the dataset JSON Schema"
       tags:
-        - "schema"
-        - "dataset"
+        - "Schema"
+        - "Dataset"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/dataset/guess:
     get:
+      operationId: guessDatasetSchema
       summary: "get the JSON Schema for the dataset guess"
       tags:
-        - "schema"
-        - "dataset"
+        - "Schema"
+        - "Dataset"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/engine/{engine_name}/datastore:
     get:
+      operationId: getEngineDatastoreSchema
       summary: "get the datastore JSON Schema for the named engine"
       tags:
-        - "schema"
-        - "engine"
-        - "datastore"
+        - "Schema"
+        - "Engine"
+        - "Datastore"
       parameters:
         - name: engine_name
           in: path
@@ -995,20 +935,18 @@ paths:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
         "400":
           description: "if engine is unknown"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/datastore:
     get:
+      operationId: getDatastoreSchema
       summary: "get the datastore JSON Schema"
       tags:
-        - "schema"
-        - "datastore"
+        - "Schema"
+        - "Datastore"
       parameters:
         - name: datastore_id
           in: query
@@ -1017,20 +955,18 @@ paths:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
         "404":
           description: "if the optionally specified datastore could not be found"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/action:
     get:
+      operationId: getActionSchema
       summary: "get the action JSON Schema"
       tags:
-        - "schema"
-        - "action"
+        - "Schema"
+        - "Action"
       parameters:
         - name: action_id
           in: query
@@ -1039,20 +975,18 @@ paths:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
         "404":
           description: "if the optionally specified action could not be found"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/action/{action_name}:
     get:
+      operationId: getActionSchemaByName
       summary: "get the action JSON Schema by action name"
       tags:
-        - "schema"
-        - "action"
+        - "Schema"
+        - "Action"
       parameters:
         - name: action_name
           in: path
@@ -1074,66 +1008,58 @@ paths:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
         "400":
           description: "if the optionally specified action is unknown"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
         "404":
           description: "if the optionally specified action could not be found"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/workflow:
     get:
+      operationId: getWorkflowSchema
       summary: "get the workflow JSON Schema"
       tags:
-        - "schema"
-        - "workflow"
+        - "Schema"
+        - "Workflow"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/workflow/instance:
     get:
+      operationId: getWorkflowInstanceSchema
       summary: "get the workflow instance JSON Schema"
       tags:
-        - "schema"
-        - "workflow instance"
+        - "Schema"
+        - "WorkflowInstance"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/trigger_type:
     get:
+      operationId: getTriggerTypeSchema
       summary: "get the trigger type JSON schema"
       tags:
-        - "schema"
-        - "trigger type"
+        - "Schema"
+        - "TriggerType"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/trigger:
     get:
+      operationId: getTriggerSchema
       summary: "get the trigger JSON schema"
       tags:
-        - "schema"
-        - "trigger"
+        - "Schema"
+        - "Trigger"
       parameters:
         - name: trigger_type_name
           in: query
@@ -1145,74 +1071,72 @@ paths:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
         "400":
           description: "if the optionally specified trigger is unknown"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /schema/event:
     get:
+      operationId: getEventSchema
       summary: "get the event JSON schema"
       tags:
-        - "schema"
-        - "event"
+        - "Schema"
+        - "Event"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /schema/subscription:
     get:
+      operationId: getSubscriptionSchema
       summary: "get the subscription JSON schema"
       tags:
-        - "schema"
-        - "subscription"
+        - "Schema"
+        - "Subscription"
       responses:
         "200":
           description: "returns the JSON Schema"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/JSONSchema"
+            $ref: '#/definitions/JSONSchemaResponse'
   /subgraph_definition/{subgraph_definition_id}:
-    parameters:
-      - name: "subgraph_definition_id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getSubgraphDefinition
       summary: "get the subgraph definition"
       tags:
-        - "subgraph definition"
+        - "SubgraphDefinition"
+      parameters:
+        - name: "subgraph_definition_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the subgraph definition"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/SubGraphDefinition"
+            $ref: '#/definitions/SubgraphDefinitionResponse'
     delete:
+      operationId: deleteSubgraphDefinition
       summary: "delete the subgraph definition"
       tags:
-        - "subgraph definition"
+        - "SubgraphDefinition"
+      parameters:
+        - name: "subgraph_definition_id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /subscription:
     get:
-      summary: "find subscriptions"
+      operationId: listSubscriptions
+      summary: "list subscriptions"
       tags:
-        - "subscription"
+        - "Subscription"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -1221,41 +1145,33 @@ paths:
         "200":
           description: "the subscriptions"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  $ref: "#/definitions/Subscription"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedSubscriptionsResponse'
   /subscription/{subscription_id}:
-    parameters:
-      - name: subscription_id
-        in: path
-        type: string
-        required: true
     get:
+      operationId: getSubscription
       summary: "get a subscription"
       tags:
-        - "subscription"
+        - "Subscription"
+      parameters:
+        - name: subscription_id
+          in: path
+          type: string
+          required: true
       responses:
         "200":
           description: "the subscription"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Subscription"
+            $ref: '#/definitions/SubscriptionResponse'
     put:
+      operationId: updateSubscription
       summary: "update a subscription"
       tags:
-        - "subscription"
+        - "Subscription"
       parameters:
+        - name: subscription_id
+          in: path
+          type: string
+          required: true
         - name: subscription
           in: body
           required: true
@@ -1265,46 +1181,52 @@ paths:
         "200":
           description: "the subscription"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Subscription"
+            $ref: '#/definitions/SubscriptionResponse'
         "400":
           description: "subscription is in an invalid state to update"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     patch:
+      operationId: patchSubscription
       summary: "update a subscription using a JSON Patch"
       tags:
-        - "subscription"
+        - "Subscription"
       parameters:
+        - name: subscription_id
+          in: path
+          type: string
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: "the subscription"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Subscription"
+            $ref: '#/definitions/SubscriptionResponse'
         "400":
           description: "subscription is in an invalid state to update"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     delete:
+      operationId: deleteSubscription
       summary: "delete a subscription"
       tags:
-        - "subscription"
+        - "Subscription"
+      parameters:
+        - name: subscription_id
+          in: path
+          type: string
+          required: true
       responses:
         "200":
           description: "ok"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /subscription/{subscription_id}/element_stats:
     get:
+      operationId: getSubscriptionElementStats
       summary: "get the element statistics for a subscription"
       tags:
-        - "subscription"
+        - "Subscription"
       parameters:
         - name: subscription_id
           in: path
@@ -1314,17 +1236,13 @@ paths:
         "200":
           description: "the element statistics"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  type: object
+            $ref: '#/definitions/ObjectsResponse'
   /subscription/{subscription_id}/elements:
     get:
-      summary: "get the elements for a subscription"
+      operationId: listSubscriptionElements
+      summary: "list the elements for a subscription"
       tags:
-        - "subscription"
+        - "Subscription"
       parameters:
         - name: subscription_id
           in: path
@@ -1346,23 +1264,13 @@ paths:
         "200":
           description: "the subscription elements"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  type: object
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedSubscriptionElementsResponse'
   /trigger:
     post:
+      operationId: createTrigger
       summary: "create a new trigger"
       tags:
-        - "trigger"
+        - "Trigger"
       parameters:
         - name: trigger
           in: body
@@ -1373,14 +1281,12 @@ paths:
         "200":
           description: "the trigger"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Trigger"
+            $ref: '#/definitions/TriggerResponse'
     get:
-      summary: "find triggers"
+      operationId: listTriggers
+      summary: "list triggers"
       tags:
-        - "trigger"
+        - "Trigger"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -1389,41 +1295,33 @@ paths:
         "200":
           description: "the triggers"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  $ref: "#/definitions/Trigger"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedTriggersResponse'
   /trigger/{trigger_id}:
-    parameters:
-      - name: trigger_id
-        in: path
-        type: string
-        required: true
     get:
+      operationId: getTrigger
       summary: "get a trigger"
       tags:
-        - "trigger"
+        - "Trigger"
+      parameters:
+        - name: trigger_id
+          in: path
+          type: string
+          required: true
       responses:
         "200":
           description: "the trigger"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Trigger"
+            $ref: '#/definitions/TriggerResponse'
     put:
+      operationId: updateTrigger
       summary: "update a trigger"
       tags:
-        - "trigger"
+        - "Trigger"
       parameters:
+        - name: trigger_id
+          in: path
+          type: string
+          required: true
         - name: trigger
           in: body
           required: true
@@ -1433,38 +1331,44 @@ paths:
         "200":
           description: "the trigger"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Trigger"
+            $ref: '#/definitions/TriggerResponse'
     patch:
+      operationId: patchTrigger
       summary: "patch a trigger"
       tags:
-        - "trigger"
+        - "Trigger"
       parameters:
+        - name: trigger_id
+          in: path
+          type: string
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: "the trigger"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Trigger"
+            $ref: '#/definitions/TriggerResponse'
     delete:
+      operationId: deleteTrigger
       summary: "delete a trigger"
       tags:
-        - "trigger"
+        - "Trigger"
+      parameters:
+        - name: trigger_id
+          in: path
+          type: string
+          required: true
       responses:
         "200":
           description: "ok"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /trigger_type:
     get:
+      operationId: listTriggerTypes
       summary: "get trigger types"
       tags:
-        - "trigger"
+        - "TriggerType"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -1472,23 +1376,13 @@ paths:
         "200":
           description: "the trigger types"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  $ref: "#/definitions/TriggerType"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedTriggerTypesResponse'
   /workflow:
     get:
-      summary: "find workflows, optionally using filters"
+      operationId: listWorkflows
+      summary: "list workflows, optionally using filters"
       tags:
-        - "workflow"
+        - "Workflow"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
@@ -1497,42 +1391,35 @@ paths:
         "200":
           description: "returns the workflows matching the filters or all workflows if no filters are specified."
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Workflow"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedWorkflowsResponse'
   /workflow/{workflow_id}:
-    parameters:
-      - name: "workflow_id"
-        description: "the workflow id"
-        type: "string"
-        in: "path"
-        required: true
     get:
-      summary: "find a workflow by id"
+      operationId: getWorkflow
+      summary: "get a workflow by id"
       tags:
-        - "workflow"
+        - "Workflow"
+      parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the workflow"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Workflow"
+            $ref: '#/definitions/WorkflowResponse'
     put:
+      operationId: updateWorkflow
       summary: "update a workflow"
       tags:
-        - "workflow"
+        - "Workflow"
       parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "workflow"
           description: "the workflow"
           in: "body"
@@ -1543,50 +1430,57 @@ paths:
         "200":
           description: "returns the updated workflow"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Workflow"
+            $ref: '#/definitions/WorkflowResponse'
         "400":
           description: "workflow is in an invalid state to update"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
     patch:
+      operationId: patchWorkflow
       summary: "update a workflow using a JSON patch"
       tags:
-        - "workflow"
+        - "Workflow"
       parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
         - $ref: '#/parameters/patchParam'
       responses:
         "200":
           description: "returns the updated workflow"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/Workflow"
+            $ref: '#/definitions/WorkflowResponse'
     delete:
+      operationId: deleteWorkflow
       description: "delete a workflow"
       tags:
-        - "workflow"
+        - "Workflow"
+      parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /workflow/{workflow_id}/action:
-    parameters:
-      - name: "workflow_id"
-        description: "the workflow id"
-        type: "string"
-        in: "path"
-        required: true
     post:
-      summary: "create an action for a workflow"
+      operationId: createWorkflowActions
+      summary: "create actions for a workflow"
       tags:
-        - "workflow"
-        - "action"
+        - "Workflow"
+        - "Action"
       parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
         - name: "actions"
           in: "body"
           required: true
@@ -1604,112 +1498,94 @@ paths:
         "200":
           description: "the created actions"
           schema:
-            type: object
-            properties:
-              results:
-                type: array
-                items:
-                  $ref: "#/definitions/Action"
+            $ref: '#/definitions/ActionsResponse'
   /workflow/{workflow_id}/do-manual-trigger:
-    parameters:
-      - name: "workflow_id"
-        description: "the workflow id"
-        type: "string"
-        in: "path"
-        required: true
     post:
+      operationId: triggerWorkflow
       summary: "manually trigger a workflow"
       tags:
-        - "workflow"
+        - "Workflow"
+      parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
         "400":
           description: "failed to trigger the workflow"
           schema:
-            $ref: "#/definitions/ErrorResult"
+            $ref: "#/definitions/ErrorResponse"
   /workflow/{workflow_id}/instance:
-    parameters:
-      -
-        name: "workflow_id"
-        description: "the workflow id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: listWorkflowInstancesForWorkflow
       summary: "find the instances for the specified workflow"
       tags:
-        - "workflow"
+        - "Workflow"
+        - "WorkflowInstance"
+      parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the workflow instance"
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/WorkflowInstance"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedWorkflowInstancesResponse'
     delete:
+      operationId: deleteWorkflowInstancesForWorkflow
       summary: "delete workflow instances associated with this workflow"
       tags:
-        - "workflow"
+        - "Workflow"
+      parameters:
+        - name: "workflow_id"
+          description: "the workflow id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "returns a success message"
           schema:
-            $ref: "#/definitions/OKResult"
+            $ref: "#/definitions/OKResponse"
   /workflow/instance:
     get:
+      operationId: listWorkflowInstances
+      summary: "list workflow instances"
       tags:
-        - "workflow instance"
+        - "WorkflowInstance"
       parameters:
         - $ref: '#/parameters/limitParam'
         - $ref: '#/parameters/offsetParam'
         - $ref: '#/parameters/filtersParam'
       responses:
         "200":
-          description: "find workflow instances"
+          description: "returns the workflow instances"
           schema:
-            type: object
-            properties:
-              results:
-                type: "array"
-                items:
-                  $ref: "#/definitions/WorkflowInstance"
-              limit:
-                type: "integer"
-              offset:
-                type: "integer"
-              total:
-                type: "integer"
+            $ref: '#/definitions/PagedWorkflowInstancesResponse'
   /workflow/instance/{workflow_instance_id}:
-    parameters:
-      -
-        name: "workflow_instance_id"
-        description: "the workflow instance id"
-        type: "string"
-        in: "path"
-        required: true
     get:
+      operationId: getWorkflowInstance
+      summary: "get a workflow instance"
       tags:
-        - "workflow instance"
+        - "WorkflowInstance"
+      parameters:
+        - name: "workflow_instance_id"
+          description: "the workflow instance id"
+          type: "string"
+          in: "path"
+          required: true
       responses:
         "200":
           description: "the workflow instance"
           schema:
-            type: object
-            properties:
-              results:
-                $ref: "#/definitions/WorkflowInstance"
+            $ref: '#/definitions/WorkflowInstanceResponse'
 parameters:
   limitParam:
     name: "limit"
@@ -1763,18 +1639,27 @@ definitions:
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/ActionData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
   ActionContext:
+    type: object
+  ActionContextResponse:
+    properties:
+      results:
+        $ref: '#/definitions/ActionContext'
     type: object
   ActionData:
     additionalProperties: false
@@ -1782,29 +1667,41 @@ definitions:
       action_type_name:
         type: string
       args:
-        additionalProperties: false
-        properties: {}
         type: object
+        x-nullable: true
+      avg_runtime:
+        type: string
+        x-nullable: true
+      completed_runs:
+        default: 0
+        type: integer
       datastore_id:
         type: string
+        x-nullable: true
       ecs_task_arn:
         type: string
+        x-nullable: true
       end_time:
         type: string
+        x-nullable: true
       engine_name:
         type: string
       error_message:
         type: string
+        x-nullable: true
         x-schema-form:
           type: textarea
       extra_data:
         type: object
+        x-nullable: true
       first_in_workflow:
         default: false
         type: boolean
+        x-nullable: true
       last_in_workflow:
         default: false
         type: boolean
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
@@ -1840,12 +1737,16 @@ definitions:
       order_idx:
         minimum: 0.0
         type: number
+        x-nullable: true
       progress:
         type: number
+        x-nullable: true
       queued_time:
         type: string
+        x-nullable: true
       start_time:
         type: string
+        x-nullable: true
       state:
         default: HAS_NEVER_RUN
         enum:
@@ -1856,12 +1757,13 @@ definitions:
         - FINISHING
         - COMPLETED
         - FAILED
+        - SKIPPED
         - TEMPLATE
         type: string
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -1869,16 +1771,31 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
       workflow_action_id:
         type: string
+        x-nullable: true
       workflow_id:
         type: string
+        x-nullable: true
       workflow_instance_id:
         type: string
+        x-nullable: true
     required:
     - action_type_name
     - engine_name
     - name
+    - args
+    - user_id
+    type: object
+  ActionResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Action'
     type: object
   ActionResult:
     type: object
@@ -1890,6 +1807,14 @@ definitions:
         type: string
       params_json_schema:
         type: object
+        x-nullable: true
+    type: object
+  ActionsResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/Action'
+        type: array
     type: object
   Column:
     additionalProperties: false
@@ -1911,24 +1836,31 @@ definitions:
         type: string
       date_pattern:
         type: string
+        x-nullable: true
       description:
         type: string
+        x-nullable: true
       is_nullable:
         default: true
         type: boolean
+        x-nullable: true
       length:
         minimum: 1
         type: integer
+        x-nullable: true
       name:
         maxLength: 255
         pattern: ^[a-zA-Z0-9_]+$
         type: string
       path:
         type: string
+        x-nullable: true
       precision:
         type: integer
+        x-nullable: true
       scale:
         type: integer
+        x-nullable: true
     required:
     - name
     - data_type
@@ -1938,8 +1870,10 @@ definitions:
     properties:
       delimited_by:
         type: string
+        x-nullable: true
       escaped_by:
         type: string
+        x-nullable: true
       file_format:
         enum:
         - TEXTFILE
@@ -1948,16 +1882,20 @@ definitions:
         type: string
       null_string:
         type: string
+        x-nullable: true
       num_header_rows:
         default: 0
         minimum: 0
         type: integer
       quoted_by:
         type: string
+        x-nullable: true
       regex_input:
         type: string
+        x-nullable: true
       regex_output:
         type: string
+        x-nullable: true
       row_format:
         enum:
         - DELIMITED
@@ -1974,14 +1912,18 @@ definitions:
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/DatasetData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2017,6 +1959,7 @@ definitions:
         $ref: '#/definitions/DataFormat'
       description:
         type: string
+        x-nullable: true
       distribution_keys:
         default: []
         items:
@@ -2030,6 +1973,7 @@ definitions:
       hive_compatible_partition_folders:
         default: false
         type: boolean
+        x-nullable: true
       load_type:
         enum:
         - INSERT
@@ -2058,9 +2002,8 @@ definitions:
         items:
           $ref: '#/definitions/Column'
         minItems: 0
-        type:
-        - array
-        - 'null'
+        type: array
+        x-nullable: true
         x-schema-form:
           title: '{{ value.name || ''column '' + $index }}'
           type: tabarray
@@ -2091,7 +2034,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2099,6 +2042,11 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
     required:
     - name
     - table_name
@@ -2107,20 +2055,30 @@ definitions:
     - data_format
     - columns
     - compression
+    - user_id
+    type: object
+  DatasetResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Dataset'
     type: object
   Datastore:
     additionalProperties: false
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/DatastoreData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2128,7 +2086,8 @@ definitions:
     additionalProperties: false
     properties:
       args:
-        type: 'null'
+        type: object
+        x-nullable: true
       concurrency:
         default: 1
         maximum: 10
@@ -2136,23 +2095,29 @@ definitions:
         type: integer
       connection_url:
         type: string
+        x-nullable: true
       engine_name:
         pattern: ^[a-zA-Z0-9_]+$
         type: string
       extra_data:
         type: object
+        x-nullable: true
       host:
         type: string
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
         type: string
       port:
         type: integer
+        x-nullable: true
       s3_artifacts_path:
         type: string
+        x-nullable: true
       s3_logs_path:
         type: string
+        x-nullable: true
       state:
         default: INACTIVE
         enum:
@@ -2164,7 +2129,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2172,25 +2137,42 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
       workflow_datastore_id:
         type: string
+        x-nullable: true
     required:
     - name
     - engine_name
+    - args
+    - user_id
+    type: object
+  DatastoreResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Datastore'
     type: object
   Engine:
     additionalProperties: false
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/EngineData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2199,16 +2181,20 @@ definitions:
     properties:
       description:
         type: string
+        x-nullable: true
       ecs_task_definition:
         type: object
+        x-nullable: true
       ecs_task_definition_arn:
         type: string
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
         type: string
       options_json_schema:
         type: object
+        x-nullable: true
       supported_action_types:
         items:
           $ref: '#/definitions/ActionType'
@@ -2220,7 +2206,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2228,10 +2214,21 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
     required:
     - name
+    - user_id
     type: object
-  ErrorResult:
+  EngineResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Engine'
+    type: object
+  ErrorResponse:
     properties:
       error_message:
         type: string
@@ -2245,14 +2242,18 @@ definitions:
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/EventData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2261,6 +2262,7 @@ definitions:
     properties:
       description:
         type: string
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
@@ -2274,7 +2276,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2282,8 +2284,19 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
     required:
     - name
+    - user_id
+    type: object
+  EventResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Event'
     type: object
   Filter:
     properties:
@@ -2333,18 +2346,52 @@ definitions:
       name:
         type: string
     type: object
+  GraphEntityIdentifierResponse:
+    properties:
+      results:
+        $ref: '#/definitions/GraphEntityIdentifier'
+    type: object
+  GraphEntityIdentifiersResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/GraphEntityIdentifier'
+        type: array
+    type: object
+  GraphEntityResponse:
+    properties:
+      results:
+        $ref: '#/definitions/GraphEntity'
+    type: object
   JSONPatch:
     description: JSON Patch object as defined by http://json.schemastore.org/json-patch
     type: object
   JSONSchema:
     description: JSON Schema object as defined by http://json-schema.org/schema
     type: object
-  OKResult:
+  JSONSchemaResponse:
+    properties:
+      results:
+        $ref: '#/definitions/JSONSchema'
+    type: object
+  OKResponse:
     properties:
       results:
         enum:
         - OK
         type: string
+    type: object
+  ObjectResponse:
+    properties:
+      results:
+        type: object
+    type: object
+  ObjectsResponse:
+    properties:
+      results:
+        items:
+          type: object
+        type: array
     type: object
   OrderBy:
     properties:
@@ -2356,23 +2403,193 @@ definitions:
       key:
         type: string
     type: object
-  SubGraph:
+  PagedActionsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Action'
+        type: array
+      total:
+        type: integer
     type: object
-  SubGraphDefinition:
+  PagedDatasetsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Dataset'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedDatastoresResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Datastore'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedEnginesResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Engine'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedEventsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Event'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedObjectsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          type: object
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedSubscriptionElementsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/SubscriptionElement'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedSubscriptionsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Subscription'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedTriggerTypesResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/TriggerType'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedTriggersResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Trigger'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedWorkflowInstancesResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/WorkflowInstance'
+        type: array
+      total:
+        type: integer
+    type: object
+  PagedWorkflowsResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/Workflow'
+        type: array
+      total:
+        type: integer
+    type: object
+  Subgraph:
+    type: object
+  SubgraphDefinition:
+    type: object
+  SubgraphDefinitionResponse:
+    properties:
+      results:
+        $ref: '#/definitions/SubgraphDefinition'
+    type: object
+  SubgraphResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Subgraph'
     type: object
   Subscription:
     additionalProperties: false
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/SubscriptionData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2383,12 +2600,16 @@ definitions:
         type: string
       failed_time:
         type: string
+        x-nullable: true
       generating_time:
         type: string
+        x-nullable: true
       initial_active_time:
         type: string
+        x-nullable: true
       message_id:
         type: string
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
@@ -2415,17 +2636,21 @@ definitions:
           type: tabarray
       queued_time:
         type: string
+        x-nullable: true
       s3_path_end_prefix_exclusive:
         description: The exclusive s3 path end prefix
         pattern: ^s3://.+$
         type: string
+        x-nullable: true
       s3_path_regex_filter:
         description: A regex pattern the s3 path must match
         type: string
+        x-nullable: true
       s3_path_start_prefix_inclusive:
         description: The inclusive s3 path start prefix
         pattern: ^s3://.+$
         type: string
+        x-nullable: true
       state:
         default: INACTIVE
         enum:
@@ -2438,7 +2663,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2446,23 +2671,40 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
     required:
     - name
     - dataset_id
+    - user_id
+    type: object
+  SubscriptionElement:
+    type: object
+  SubscriptionResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Subscription'
     type: object
   Trigger:
     additionalProperties: false
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/TriggerData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2473,6 +2715,7 @@ definitions:
         type: object
       extra_data:
         type: object
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
@@ -2486,7 +2729,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2495,6 +2738,11 @@ definitions:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
       trigger_type_name:
+        type: string
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
         type: string
       workflow_ids:
         default: []
@@ -2509,6 +2757,12 @@ definitions:
     - name
     - trigger_type_name
     - args
+    - user_id
+    type: object
+  TriggerResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Trigger'
     type: object
   TriggerType:
     properties:
@@ -2524,20 +2778,27 @@ definitions:
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/WorkflowData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
   WorkflowData:
     additionalProperties: false
     properties:
+      avg_runtime:
+        type: string
+        x-nullable: true
       concurrency:
         default: 1
         maximum: 10
@@ -2547,6 +2808,7 @@ definitions:
         type: string
       engine_name:
         type: string
+        x-nullable: true
       name:
         maxLength: 50
         pattern: ^[a-zA-Z0-9_-]+$
@@ -2597,7 +2859,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2605,23 +2867,33 @@ definitions:
         x-schema-form:
           title: '{{ value || ''tag '' + $index }}'
           type: tabarray
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
     required:
     - name
     - datastore_id
+    - user_id
     type: object
   WorkflowInstance:
     additionalProperties: false
     properties:
       created:
         type: string
+        x-nullable: true
       data:
         $ref: '#/definitions/WorkflowInstanceData'
       id:
         type: string
+        x-nullable: true
       updated:
         type: string
+        x-nullable: true
       version_id:
         type: integer
+        x-nullable: true
     required:
     - data
     type: object
@@ -2632,16 +2904,20 @@ definitions:
         type: string
       end_time:
         type: string
+        x-nullable: true
       engine_name:
         type: string
       error_message:
         type: string
+        x-nullable: true
         x-schema-form:
           type: textarea
       queued_time:
         type: string
+        x-nullable: true
       start_time:
         type: string
+        x-nullable: true
       state:
         default: QUEUED
         enum:
@@ -2653,7 +2929,7 @@ definitions:
       tags:
         default: []
         items:
-          maxLength: 30
+          maxLength: 40
           pattern: ^[a-zA-Z0-9_]+$
           type: string
         minItems: 0
@@ -2665,7 +2941,23 @@ definitions:
         type: string
       trigger_type:
         type: string
+      user_id:
+        default: unknown
+        maxLength: 64
+        pattern: ^[@.a-zA-Z0-9_-]+$
+        type: string
       workflow_id:
         type: string
+    required:
+    - user_id
     type: object
-
+  WorkflowInstanceResponse:
+    properties:
+      results:
+        $ref: '#/definitions/WorkflowInstance'
+    type: object
+  WorkflowResponse:
+    properties:
+      results:
+        $ref: '#/definitions/Workflow'
+    type: object

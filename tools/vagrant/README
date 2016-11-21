@@ -15,7 +15,6 @@ Vagrant > 1.8:
 * Work-dir:  tools/vagrant/docker/
 ----------
 This is the folder in the git repo you just downloaded (git clone https://github.com/RetailMeNotSandbox/dart.git)
-You can copy it to a separate folder, it has no dependency on the rest of the repo files.
 
 Explanation of script's commands:
 --------------------------------
@@ -57,8 +56,8 @@ Explanation of script's commands:
 ===========================================================================================================================
 =================================== Local-development =====================================================================
 ===========================================================================================================================
-1. The setup script git clones the repo to its local directory.
-  -- It is the same repo that is mounted on the vagrant machine and mounted as a volume to all the (dart-workers) docker containers.
+1. The setup script mounts the parent dart repository to /vagrant_data/dart on the vagrant machine.
+  -- It is mounted as a volume to all the (dart-workers) docker containers.
   -- You can edit the code in this repo and expect to see changes in UI.
 
 2. If you need to relaunch a container.

@@ -20,6 +20,7 @@ class TestDatasetCrud(unittest.TestCase):
                              data_format=df,
                              columns=columns,
                              tags=['foo']))
+        ds.data.user_id = 'dart@client.rmn'
         posted_dataset = self.dart.save_dataset(ds)
         self.assertEqual(posted_dataset.data.to_dict(), ds.data.to_dict())
 

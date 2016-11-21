@@ -20,3 +20,8 @@ class DartActionException(Exception):
     def __init__(self, message, data=None):
         self.data = data
         super(Exception, self).__init__(message)
+
+class DartAuthenticationException(Exception):
+    def __init__(self, message, data=None):
+        self.data = data
+        super(Exception, self).__init__(message)

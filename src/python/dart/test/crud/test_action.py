@@ -39,6 +39,9 @@ class TestActionCrud(unittest.TestCase):
         action0.data.order_idx = posted_actions[0].data.order_idx
         action1.data.order_idx = posted_actions[1].data.order_idx
 
+        action0.data.user_id = posted_actions[0].data.user_id
+        action1.data.user_id = posted_actions[1].data.user_id
+
         self.assertEqual(posted_actions[0].data.to_dict(), action0.data.to_dict())
         self.assertEqual(posted_actions[1].data.to_dict(), action1.data.to_dict())
 
@@ -81,6 +84,9 @@ class TestActionCrud(unittest.TestCase):
         action1.data.order_idx = posted_actions[1].data.order_idx
         action0.data.args = {}
         action1.data.args = {}
+
+        action0.data.user_id = posted_actions[0].data.user_id
+        action1.data.user_id = posted_actions[1].data.user_id
 
         self.assertEqual(posted_actions[0].data.to_dict(), action0.data.to_dict())
         self.assertEqual(posted_actions[1].data.to_dict(), action1.data.to_dict())

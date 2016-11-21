@@ -30,7 +30,8 @@ Vagrant.configure(2) do |config|
 
   # Files in the same folder as the Vagrantfile will be synched in guest machine via /vagrant_data
   config.vm.synced_folder ".", "/vagrant_data"
- 
+  config.vm.synced_folder "../..", "/vagrant_data/dart"
+
   # set memory of VM to 2GB
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true

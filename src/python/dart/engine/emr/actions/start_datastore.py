@@ -1,8 +1,8 @@
-import copy
 import json
 import ntpath
 import os
 import math
+import tempfile
 import time
 
 from dart.engine.emr.actions.consume_subscription import subscription_s3_path_and_file_size_generator
@@ -40,13 +40,17 @@ def start_datastore(emr_engine, datastore, action):
 
     action = emr_engine.dart.patch_action(action, progress=0, extra_data=extra_data)
 
-    cluster_id = create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, instance_groups_args)
+    configuration_overrides = json.loads(action.data.args['configuration_overrides']) \
+        if action.data.args.get('configuration_overrides') else None
+
+    cluster_id = create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, instance_groups_args,
+                                configuration_overrides=configuration_overrides)
     emr_engine.dart.patch_datastore(datastore, extra_data={'cluster_id': cluster_id})
     emr_engine.dart.patch_action(action, progress=0.1)
 
-    cluster = None
     while True:
-        state = emr_engine.conn.describe_cluster(cluster_id).status.state
+        cluster = emr_engine.conn.describe_cluster(cluster_id)
+        state = cluster.status.state
         # http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/ProcessingCycle.html
         # using cluster state since describe_jobflow is deprecated
         # https://aws.amazon.com/elasticmapreduce/faqs/
@@ -56,7 +60,7 @@ def start_datastore(emr_engine, datastore, action):
             break
 
     if state not in ['WAITING']:
-        raise Exception('cluster_id=%s not in WAITING state, but in state: %s' % (cluster_id, cluster.state))
+        raise Exception('cluster_id=%s not in WAITING state, but in state: %s' % (cluster_id, state))
 
     emr_engine.dart.patch_datastore(
         datastore,
@@ -66,7 +70,8 @@ def start_datastore(emr_engine, datastore, action):
     )
 
 
-def create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, instance_groups_args, steps=None, auto_terminate=False):
+def create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, instance_groups_args,
+                   steps=None, auto_terminate=False, configuration_overrides=None):
     keyname = emr_engine.ec2_keyname
     instance_profile = emr_engine.instance_profile
     az = emr_engine.cluster_availability_zone
@@ -93,7 +98,7 @@ def create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, 
         cluster_name=cluster_name,
         log_uri=datastore.data.s3_logs_path,
         service_role=emr_engine.service_role,
-        configurations='file://%s/start_configs.json' % os.path.dirname(os.path.abspath(__file__)),
+        configurations=prepare_cluster_configurations(configuration_overrides),
         ec2_attributes='KeyName=%s,AvailabilityZone=%s,InstanceProfile=%s' % (keyname, az, instance_profile),
         tags=' '.join(['%s=%s' % (k, v) for k, v in emr_engine.cluster_tags.iteritems()]),
         bootstrap_actions=' '.join([
@@ -174,3 +179,53 @@ def prepare_bootstrap_actions(datastore, impala_docker_repo_base_url, impala_ver
         s3_copy_recursive(local_ba_path, s3_ba_path)
 
     return results
+
+
+def prepare_cluster_configurations(configuration_overrides=None):
+    configs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'start_configs.json')
+    if configuration_overrides:
+        with open(configs_path, 'rt') as in_file:
+            configs = json.load(in_file)
+        merge_configurations(configuration_overrides, configs)
+        fd, configs_path = tempfile.mkstemp(suffix='.json', prefix='configs', text=True)
+        with os.fdopen(fd, 'wt') as out_file:
+            json.dump(configs, out_file, indent=True)
+    return 'file://%s' % configs_path
+
+
+def merge_configurations(source, target):
+    """
+    Merge two EMR configurations arrays consisting of configuration dictionaries, merging
+    elements with the same Classification identifier with source overwriting target.
+
+    See http://docs.aws.amazon.com/ElasticMapReduce/latest/ReleaseGuide/emr-configure-apps.html
+
+    :param source Source configurations array
+    :param target Target configurations array
+    """
+    target_config_by_classification = dict([(config['Classification'], config) for config in target])
+    for config in source:
+        target_config = target_config_by_classification.get(config['Classification'])
+        if target_config:
+            merge_configuration(config, target_config)
+        else:
+            target.append(config)
+
+
+def merge_configuration(source, target):
+    """
+    Merge two EMR configuration dictionaries by merging Properties with source overwriting
+    target and then recursively calling merge_configurations to merge the Configurations arrays.
+
+    See http://docs.aws.amazon.com/ElasticMapReduce/latest/ReleaseGuide/emr-configure-apps.html
+
+    :param source: Source configuration dictionary
+    :param target: Target configuration dictionary
+    """
+    if source['Classification'] != target['Classification']:
+        raise ValueError('Classification of source and target dictionaries differ. Aborting merge.')
+    target['Properties'].update(source['Properties'])
+    if 'Configurations' in source:
+        if 'Configurations' not in target:
+            target['Configurations'] = []
+        merge_configurations(source['Configurations'], target['Configurations'])

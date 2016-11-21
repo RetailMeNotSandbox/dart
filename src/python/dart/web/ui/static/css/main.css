@@ -76,6 +76,11 @@ md-toolbar.dt-header .breadcrumb > .active {
     padding: 20px;
 }
 
+.logout-link {
+    background-color: transparent;
+    font-size: 12px;
+}
+
 .schema-form-textarea textarea {
     height: 250px
 }

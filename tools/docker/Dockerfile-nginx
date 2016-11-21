@@ -2,7 +2,7 @@ FROM ubuntu:15.04
 MAINTAINER datawarehouse <aus-eng-data-warehouse@rmn.com>
 
 RUN apt-get update
-RUN apt-get install -y nginx
+RUN apt-get install -y nginx vim curl
 
 ADD src/nginx/nginx.conf /src/nginx/nginx.conf
 

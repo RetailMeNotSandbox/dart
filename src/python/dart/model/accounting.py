@@ -40,7 +40,7 @@ class Accounting(BaseModel):
         self.user_id = user_id
         self.state = state
         self.entity = entity
-        self.params = json.dumps(params)
+        self.params = json.dumps(params)[:1023]
         self.return_code = str(return_code)
         self.api_version = str(api_version)
         self.extra = extra

@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, request
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 
 from dart.model.graph import GraphEntity, EntityType
 from dart.service.action import ActionService
@@ -13,6 +14,7 @@ api_graph_bp = Blueprint('api_graph', __name__)
 
 
 @api_graph_bp.route('/graph/entity_identifiers', methods=['GET'])
+@login_required
 @jsonapi
 def get_graph_entity_identifiers():
     search = request.args.get('search')
@@ -22,6 +24,7 @@ def get_graph_entity_identifiers():
 
 
 @api_graph_bp.route('/graph/action/<action>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_action(action):
@@ -31,6 +34,7 @@ def get_graph_from_action(action):
 
 
 @api_graph_bp.route('/graph/dataset/<dataset>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_dataset(dataset):
@@ -40,6 +44,7 @@ def get_graph_from_dataset(dataset):
 
 
 @api_graph_bp.route('/graph/datastore/<datastore>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_datastore(datastore):
@@ -49,6 +54,7 @@ def get_graph_from_datastore(datastore):
 
 
 @api_graph_bp.route('/graph/event/<event>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_event(event):
@@ -58,6 +64,7 @@ def get_graph_from_event(event):
 
 
 @api_graph_bp.route('/graph/subscription/<subscription>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_subscription(subscription):
@@ -67,6 +74,7 @@ def get_graph_from_subscription(subscription):
 
 
 @api_graph_bp.route('/graph/trigger/<trigger>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_trigger(trigger):
@@ -76,6 +84,7 @@ def get_graph_from_trigger(trigger):
 
 
 @api_graph_bp.route('/graph/workflow/<workflow>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_graph_from_workflow(workflow):
@@ -85,6 +94,7 @@ def get_graph_from_workflow(workflow):
 
 
 @api_graph_bp.route('/graph/sub_graph', methods=['GET'])
+@login_required
 @jsonapi
 def get_sub_graphs():
     related_type = request.args.get('related_type')
@@ -119,6 +129,7 @@ def get_sub_graphs():
 
 
 @api_graph_bp.route('/graph/sub_graph', methods=['POST'])
+@login_required
 @accounting_track
 @jsonapi
 def post_entity_map():

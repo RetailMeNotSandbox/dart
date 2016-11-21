@@ -2,6 +2,8 @@ import json
 
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
+
 
 from dart.model.dataset import Dataset
 from dart.service.dataset import DatasetService
@@ -13,6 +15,7 @@ api_dataset_bp = Blueprint('api_dataset', __name__)
 
 
 @api_dataset_bp.route('/dataset', methods=['POST'])
+@login_required
 @accounting_track
 @jsonapi
 def post_dataset():
@@ -20,15 +23,15 @@ def post_dataset():
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['GET'])
+@login_required
 @fetch_model
-@accounting_track
 @jsonapi
 def get_dataset(dataset):
     return {'results': dataset.to_dict()}
 
 
 @api_dataset_bp.route('/dataset/guess', methods=['GET'])
-@accounting_track
+@login_required
 @jsonapi
 def get_dataset_guess():
     s3_path = request.args.get('s3_path')
@@ -38,7 +41,7 @@ def get_dataset_guess():
 
 
 @api_dataset_bp.route('/dataset', methods=['GET'])
-@accounting_track
+@login_required
 @jsonapi
 def find_datasets():
     limit = int(request.args.get('limit', 20))
@@ -54,6 +57,7 @@ def find_datasets():
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['PUT'])
+@login_required
 @accounting_track
 @fetch_model
 @jsonapi
@@ -62,6 +66,7 @@ def put_dataset(dataset):
 
 
 @api_dataset_bp.route('/dataset/<dataset>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

@@ -1,7 +1,9 @@
 import json
-from flask import Blueprint, request, current_app
 
+from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
+
 from jsonpatch import JsonPatch
 
 from dart.model.subscription import Subscription, SubscriptionState, SubscriptionElementState
@@ -14,6 +16,7 @@ api_subscription_bp = Blueprint('api_subscription', __name__)
 
 
 @api_subscription_bp.route('/dataset/<dataset>/subscription', methods=['POST'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -25,6 +28,7 @@ def post_subscription(dataset):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_subscription(subscription):
@@ -32,6 +36,7 @@ def get_subscription(subscription):
 
 
 @api_subscription_bp.route('/subscription', methods=['GET'])
+@login_required
 @jsonapi
 def find_subscriptions():
     limit = int(request.args.get('limit', 20))
@@ -47,6 +52,7 @@ def find_subscriptions():
 
 
 @api_subscription_bp.route('/subscription/<subscription>/element_stats', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_subscription_element_stats(subscription):
@@ -55,6 +61,7 @@ def get_subscription_element_stats(subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>/elements', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def find_subscription_elements(subscription):
@@ -69,6 +76,7 @@ def find_subscription_elements(subscription):
 
 
 @api_subscription_bp.route('/action/<action>/subscription/elements', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def find_action_subscription_elements(action):
@@ -109,6 +117,7 @@ def subscription_elements(action_id, state, subscription_id, gte_processed=None,
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -118,6 +127,7 @@ def put_subscription(subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['PATCH'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -146,6 +156,7 @@ def update_subscription(subscription, updated_subscription):
 
 
 @api_subscription_bp.route('/subscription/<subscription>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

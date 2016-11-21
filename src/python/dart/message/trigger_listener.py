@@ -53,12 +53,15 @@ class TriggerListener(object):
             _logger.error(json.dumps(traceback.format_exc()))
 
     def _handle_process_trigger(self, message_id, message, previous_handler_failed):
+        _logger.info("Processing Trigger: message_id={message_id}, message={message}".format(message_id=message_id, message=message))
         if previous_handler_failed:
-            _logger.error('previous handler for message id=%s failed... see if retrying is possible' % message_id)
+            _logger.error('previous handler for message id={message_id} failed... see if retrying is possible. message={message}'.\
+                          format(message_id=message_id, message=message))
             return
         trigger_type_name = message['trigger_type_name']
         if trigger_type_name not in self._trigger_processors:
-            raise Exception('no handler defined for trigger_type_name: %s' % trigger_type_name)
+            raise Exception('no handler defined for trigger_type_name: {trigger_name}. message_id={message_id}. message={message}'.\
+                            format(trigger_name=trigger_type_name, message_id=message_id, message=message))
         handler = self._trigger_processors[trigger_type_name]
         try:
             executed_trigger_ids = handler(message['message'], self._trigger_service)
@@ -70,9 +73,10 @@ class TriggerListener(object):
 
     def _handle_try_next_action(self, message_id, message, previous_handler_failed):
         if previous_handler_failed:
-            _logger.error('previous handler for message id=%s failed... see if retrying is possible' % message_id)
+            _logger.error('previous handler for message id={message_id} failed... see if retrying is possible. message={message}'.format(message_id=message_id, message=message))
             return
 
+        _logger.info("Next Action Trigger: message_id={message_id}, message={message}".format(message_id=message_id, message=message))
         datastore = self._datastore_service.get_datastore(message['datastore_id'])
         running_or_queued_workflow_ids = self._action_service.find_running_or_queued_action_workflow_ids(datastore.id)
         exists_non_workflow_action = self._action_service.exists_running_or_queued_non_workflow_action(datastore.id)
@@ -82,7 +86,13 @@ class TriggerListener(object):
             ensure_workflow_action=exists_non_workflow_action
         )
         if not next_action:
-            _logger.info('datastore (id=%s) has no actions that can be run at this time' % datastore.id)
+            err_msg = 'datastore (id={datastore_id}) has no actions that can be run at this time. '
+            err_msg = err_msg + 'Datastore workflows running/queued = {running_queued}. '
+            err_msg = err_msg + 'exists_non_workflow_action={exists_non_workflow_action}. message={message}.'
+            _logger.error(err_msg.format(datastore_id=datastore.id,
+                                         running_queued=running_or_queued_workflow_ids,
+                                         exists_non_workflow_action=exists_non_workflow_action,
+                                         message=message))
             return
 
         assert isinstance(next_action, Action)
@@ -95,6 +105,8 @@ class TriggerListener(object):
         if previous_handler_failed:
             _logger.error('previous handler for message id=%s failed... see if retrying is possible' % message_id)
             return
+
+        _logger.info("Complete Action Trigger: message_id={message_id}, message={message}".format(message_id=message_id, message=message))
         state = message['action_state']
         action = self._action_service.get_action(message['action_id'])
         assert isinstance(action, Action)
@@ -145,10 +157,11 @@ class TriggerListener(object):
                 f()
 
         if try_next_action:
-            self._trigger_proxy.try_next_action(datastore.id)
+            self._trigger_proxy.try_next_action({'datastore_id': datastore.id, 'log_info': message.get('log_info')})
 
     def _handle_complete_workflow(self, callbacks, wf, wfi, wfid):
         self._workflow_service.update_workflow_instance_state(wfi, WorkflowInstanceState.COMPLETED)
+        _logger.info("Trigger Workflow completion:  id={wfid}".format(wfid=wfid))
         self._trigger_proxy.trigger_workflow_completion(wfid)
         self._trigger_subscription_evaluations(wfi.data.trigger_id)
         if wf.data.on_success_email:

@@ -1,8 +1,11 @@
+import os
 import json
 import time
 
 import jsonpatch
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from basicauth import encode
 
 from dart.model.action import Action, ActionState
 from dart.model.dataset import Dataset
@@ -16,14 +19,44 @@ from dart.model.query import Operator
 from dart.model.subscription import Subscription, SubscriptionElementStats, SubscriptionState, SubscriptionElement
 from dart.model.trigger import Trigger, TriggerType
 from dart.model.workflow import Workflow, WorkflowInstance, WorkflowInstanceState
+from dart.config.config import configuration
 
+config_path = os.environ['DART_CONFIG']
+config = configuration(config_path)
+auth_config = config['auth']
+
+# Disable 'InsecureRequestWarning: Unverified HTTPS request is being made...' warnings in local dev mode.
+if auth_config.get('use_auth') and (auth_config.get('dart_server') == 'https://localhost:5000'):
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Dart(object):
+
     def __init__(self, host, port=80, api_version=1):
         self._host = host
         self._port = port
         self._api_version = api_version
-        self._base_url = 'http://%s:%s/api/%s' % (self._host, self._port, self._api_version)
+        self._base_url = '://%s:%s/api/%s' % (self._host, self._port, self._api_version)
+
+        # We cannot access the user-id from the session (since no session exists).
+        # AS a result we cannot access apikey/secret for user in db.
+        # This makes sense since the client should already retrieved his keys from the database.
+        # We will expose the key/secret via config variables.
+        # These dart_client_key/dart_client_secret should be used by the dart_client only.
+        # These values will be set during web worker startup (call to server.py) in user/apikey tables.
+        if auth_config.get('use_auth'):
+            if auth_config.get('dart_client_key') and auth_config.get('dart_client_secret'):
+                self._credential = auth_config.get('dart_client_key')
+                self._secret = auth_config.get('dart_client_secret')
+                self._base_url = 'https' +  self._base_url
+            else:
+                raise DartRequestException("dart_client_key and dart_client_secret must both exist.")
+        else:
+            # The credential/secret default values are set in order to prevent exception while calculating to hmac.
+            # The base url is http since no https end point will exist (local dev only)
+            self._credential = "cred"
+            self._secret = "secret"
+            self._base_url = 'http' + self._base_url
+
 
     def save_engine(self, engine):
         """ :type engine: dart.model.engine.Engine
@@ -360,7 +393,11 @@ class Dart(object):
         return self._request('get', '/graph/%s/%s' % (entity_type, entity_id), model_class=Graph)
 
     def _get_response_data(self, method, url_prefix, data=None, params=None):
-        response = requests.request(method, self._base_url + '/' + url_prefix.lstrip('/'), json=data, params=params)
+        basic_auth_signature = encode(self._credential, self._secret)
+        headers = {
+            'Authorization': basic_auth_signature
+        }
+        response = requests.request(method, self._base_url + '/' + url_prefix.lstrip('/'), headers=headers, json=data, params=params, verify=False)
         try:
             data = response.json()
             if data['results'] == 'ERROR':

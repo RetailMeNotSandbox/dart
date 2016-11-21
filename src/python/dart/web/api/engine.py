@@ -2,6 +2,7 @@ import json
 
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 
 from dart.message.trigger_proxy import TriggerProxy
 from dart.model.action import ActionState
@@ -19,6 +20,8 @@ api_engine_bp = Blueprint('api_engine', __name__)
 
 
 @api_engine_bp.route('/engine', methods=['POST'])
+@login_required
+@accounting_track
 @jsonapi
 def post_engine():
     engine = engine_service().save_engine(Engine.from_dict(request.get_json()))
@@ -26,47 +29,25 @@ def post_engine():
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['GET'])
+@login_required
 @fetch_model
-@accounting_track
 @jsonapi
 def get_engine(engine):
     """
     This is the engine API
     Call this api passing a engine id (id column in engine table) and get back its data column.
     E.g. {"name": "no_op_engine", "tags": [], "description": "Helps engineering test dart", "ecs_task_definition": ...}
-    ---
-    tags:
-      - engine API
-    parameters:
-      - name: engine
-        in: path
-        type: string
-        required: true
-        description: The id column in engine table.
-    responses:
-      404:
-        description: Error, engine with provided id not found.
-      200:
-        description: Found engine with provided id.
     """
     return {'results': engine.to_dict()}
 
 
 @api_engine_bp.route('/engine', methods=['GET'])
-@accounting_track
+@login_required
 @jsonapi
 def find_engines():
     """
     This is the engine API
     Get back all existing engines.
-    ---
-    tags:
-      - engine API
-    responses:
-      404:
-        description: Error, engine with provided id not found.
-      200:
-        description: Found engine with provided id.
     """
     limit = int(request.args.get('limit', 20))
     offset = int(request.args.get('offset', 0))
@@ -81,6 +62,7 @@ def find_engines():
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -92,6 +74,7 @@ def put_engine(engine):
 
 
 @api_engine_bp.route('/engine/action/<action>/checkout', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -108,6 +91,7 @@ def action_checkout(action):
 
 
 @api_engine_bp.route('/engine/action/<action>/checkin', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -147,6 +131,7 @@ def validate_engine_action(action, state):
 
 
 @api_engine_bp.route('/engine/<engine>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -156,6 +141,7 @@ def delete_engine(engine):
 
 
 @api_engine_bp.route('/engine/<engine>/subgraph_definition', methods=['POST'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -167,6 +153,7 @@ def post_subgraph_definition(engine):
 
 
 @api_engine_bp.route('/subgraph_definition/<subgraph_definition>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_subgraph_definition(subgraph_definition):
@@ -174,6 +161,7 @@ def get_subgraph_definition(subgraph_definition):
 
 
 @api_engine_bp.route('/engine/<engine>/subgraph_definition', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_subgraph_definitions(engine):
@@ -181,6 +169,7 @@ def get_subgraph_definitions(engine):
 
 
 @api_engine_bp.route('/subgraph_definition/<subgraph_definition>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

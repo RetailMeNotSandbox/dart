@@ -9,10 +9,11 @@ set -e # exit on first error
 python tests/test_generate_deployment_files.py
 
 # We will read the code from this repo - you can change code and it will be seen in:
-# Vagrant: /vagrant_Data
+# Vagrant: /vagrant_data
 # Docker-containers: /Code
-rm -rf ./dart
-git clone https://github.com/RetailMeNotSandbox/dart.git 
+
+# Remove any existing dart directory that might have been cloned by the previous version of this script
+rm -rf dart
 
 # Generates Dokcer-compose, dockerfiles and config files from jinja templates.
 python generate_deployment_files.py

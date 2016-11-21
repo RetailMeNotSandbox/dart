@@ -21,6 +21,7 @@ class TestDatastoreCrud(unittest.TestCase):
         # copy fields that are populated at creation time
         dst.data.s3_artifacts_path = posted_datastore.data.s3_artifacts_path
         dst.data.s3_logs_path = posted_datastore.data.s3_logs_path
+        dst.data.user_id = posted_datastore.data.user_id
         self.assertEqual(posted_datastore.data.to_dict(), dst.data.to_dict())
 
         datastore = self.dart.get_datastore(posted_datastore.id)

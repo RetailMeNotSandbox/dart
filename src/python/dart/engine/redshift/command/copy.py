@@ -1,9 +1,10 @@
 from itertools import islice
+from dart.util.strings import substitute_date_tokens
+from datetime import datetime
 import json
 import logging
 import os
 import tempfile
-
 import boto3
 
 from dart.engine.redshift.admin.utils import lookup_credentials
@@ -11,7 +12,6 @@ from dart.engine.redshift.command.ddl import get_target_schema_and_table_name, g
     get_tracking_schema_and_table_name
 from dart.model.dataset import RowFormat, Compression, LoadType
 from dart.util.s3 import get_bucket_name, get_key_name
-
 
 core_counts_by_instance_type = {
     'ds1.xlarge': 2,
@@ -21,7 +21,6 @@ core_counts_by_instance_type = {
     'dc1.large': 2,
     'dc1.8xlarge': 32,
 }
-
 
 _logger = logging.getLogger(__name__)
 
@@ -90,7 +89,6 @@ def copy_from_s3(dart, datastore, action, dataset, conn, batch_size, s3_path_and
 
 def _load_target_table(action, conn, dart, dataset, stage_schema_name, stage_table_name, step_num, steps_total,
                        target_schema_name, target_table_name):
-
     if dataset.data.load_type == LoadType.MERGE:
         sql = 'DELETE FROM {target_schema_name}.{target_table_name} ' \
               'WHERE ({merge_keys}) IN (SELECT DISTINCT {merge_keys} FROM {stage_schema_name}.{stage_table_name})'
@@ -150,10 +148,48 @@ def _load_stage_table(action, conn, dart, dataset, datastore, manifests, stage_s
         aws_access_key_id, aws_secret_access_key, security_token = lookup_credentials(action)
         sql = _get_copy_from_s3_sql(datastore, action, dataset, stage_schema_name, stage_table_name,
                                     s3_manifest_path, aws_access_key_id, aws_secret_access_key, security_token)
-        conn.execute(sql)
+        try:
+            conn.execute(sql)
+        except Exception as e:
+            if "Check 'stl_load_errors' system table for details" in e.message:
+                now = datetime.utcnow()
+                filename = substitute_date_tokens(dataset.data.location, now)
+                stl_load_error_sql = "SELECT * FROM pg_catalog.stl_load_errors WHERE filename LIKE '{filename}%%' " \
+                                     "ORDER BY starttime DESC LIMIT 1".format(filename=filename)
+                stl_load_error = conn.execute(stl_load_error_sql).fetchone()
+                exception_message = "Load into {table_name} failed.\n" \
+                                    "stl_load_error:\n" \
+                                    "Start Time: {starttime}\n" \
+                                    "Filename: {filename}\n" \
+                                    "Line No.: {line_number}\n" \
+                                    "Column Name: {colname}\n" \
+                                    "Type: {type}\n" \
+                                    "Column Length: {col_length}\n" \
+                                    "Position: {position}\n" \
+                                    "Raw Line: {raw_line}\n" \
+                                    "Raw Field Value: {raw_field_value}\n" \
+                                    "Error Code: {err_code}\n" \
+                                    "Error Reason: {err_reason}"
+                exception_message = exception_message.format(
+                    table_name=stage_table_name,
+                    starttime=stl_load_error['starttime'],
+                    filename=stl_load_error['filename'],
+                    line_number=stl_load_error['line_number'],
+                    colname=stl_load_error['colname'],
+                    type=stl_load_error['type'],
+                    col_length=stl_load_error['col_length'],
+                    position=stl_load_error['position'],
+                    raw_line=stl_load_error['raw_line'],
+                    raw_field_value=stl_load_error['raw_field_value'],
+                    err_code=stl_load_error['err_code'],
+                    err_reason=stl_load_error['err_reason']
+                )
+                raise Exception(exception_message)
+            else:
+                raise e
         action = dart.patch_action(action, progress=_get_progress(step_num, steps_total))
 
-    return action, step_num+1
+    return action, step_num + 1
 
 
 def _get_progress(step_num, steps_total):

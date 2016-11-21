@@ -56,6 +56,14 @@ class ScheduledTriggerProcessor(TriggerProcessor):
             State='ENABLED',
             Description='scheduled trigger for dart'
         )
+
+        user_id = 'anonymous'
+        if trigger.data.user_id:
+            user_id = trigger.data.user_id
+
+        if len(trigger.data.tags) > 0:
+            workflow_id = trigger.data.tags[0]
+
         response = client.put_targets(
             Rule=self._get_cloudwatch_events_rule_name(trigger),
             Targets=[
@@ -66,7 +74,10 @@ class ScheduledTriggerProcessor(TriggerProcessor):
                         'call': TriggerCall.PROCESS_TRIGGER,
                         'trigger_type_name': self._trigger_type.name,
                         'message': {
-                            'trigger_id': trigger.id
+                            'trigger_id': trigger.id,
+                            'user_id': user_id, # This info is for tracking WF when viewed in cloudwatch rules
+                            # logging workflow_id will be auto generated in '/workflow/<workflow>/do-manual-trigger', this one is for future needs.
+                            'workflow_id': workflow_id
                         },
                     }),
                 }

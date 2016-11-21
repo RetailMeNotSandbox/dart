@@ -6,3 +6,8 @@ node_modules
 *.orig
 *.iml
 *.egg-info/
+settings.json
+dart.yaml
+pip-*/
+easy_install-*/
+configs*.json

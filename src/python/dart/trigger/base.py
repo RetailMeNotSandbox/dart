@@ -40,7 +40,7 @@ def execute_trigger(trigger, trigger_type, workflow_service, logger):
     if trigger.data.workflow_ids:
         for workflow_id in trigger.data.workflow_ids:
             try:
-                workflow_service.run_triggered_workflow(workflow_id, trigger_type, trigger.id)
+                workflow_service.run_triggered_workflow({'workflow_id':workflow_id, 'log_info':{}}, trigger_type, trigger.id)
             except Exception as e:
                 values = (workflow_id, trigger.id, e)
                 logger.error('Workflow (id=%s) could not be triggered by trigger (id=%s). Exception is: %s' % values)

@@ -1,0 +1,35 @@
+{
+    "strict": true,
+    "debug": true,
+    "sp": {
+        "entityId": "http://localhost:5000/auth/login/metadata/",
+        "assertionConsumerService": {
+            "url": "http://localhost:5000/auth/login",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "http://localhost:5000/?sls",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+        "x509cert": "<service provider cert>",
+        "privateKey": "<service provider private key>",
+        "certFingerprint": "FA:KE:CC:B5:E8:0B:EF:02:84:12:C0:2F:C4:9E:85:86:C6:4F:EB:AE",
+        "certFingerprintAlgorithm": "SHA1"
+    },
+    "idp": {
+        "entityId": "https://app.onelogin.com/saml/metadata/548505",
+        "singleSignOnService": {
+            "url": "https://rmn-jsteigel-dev.onelogin.com/trust/saml2/http-post/sso/548505",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "singleLogoutService": {
+            "url": "https://rmn-jsteigel-dev.onelogin.com/trust/saml2/http-redirect/slo/548505",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "<ID provider cert>",
+        "privateKey": "<ID provider private key>",
+        "certFingerprint": "FA:KE:CC:B5:E8:0B:EF:02:84:12:C0:2F:C4:9E:85:86:C6:4F:EB:AE",
+        "certFingerprintAlgorithm": "SHA1"
+    }
+}

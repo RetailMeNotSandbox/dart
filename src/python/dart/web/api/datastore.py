@@ -2,6 +2,7 @@ import json
 
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
 from jsonpatch import JsonPatch
 
 from dart.model.datastore import Datastore, DatastoreState
@@ -14,6 +15,7 @@ api_datastore_bp = Blueprint('api_datastore', __name__)
 
 
 @api_datastore_bp.route('/datastore', methods=['POST'])
+@login_required
 @accounting_track
 @jsonapi
 def post_datastore():
@@ -21,6 +23,7 @@ def post_datastore():
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_datastore(datastore):
@@ -28,6 +31,7 @@ def get_datastore(datastore):
 
 
 @api_datastore_bp.route('/datastore', methods=['GET'])
+@login_required
 @jsonapi
 def find_datastores():
     limit = int(request.args.get('limit', 20))
@@ -43,6 +47,7 @@ def find_datastores():
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -52,6 +57,7 @@ def put_datastore(datastore):
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['PATCH'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -86,6 +92,7 @@ def update_datastore(datastore, updated_datastore):
 
 
 @api_datastore_bp.route('/datastore/<datastore>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

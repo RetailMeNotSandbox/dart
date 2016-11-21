@@ -539,3 +539,19 @@ cloudformation_stacks:
                 - {Key: Product, Value: dwh}
                 - {Key: Function, Value: dar-web}
                 - {Key: Accounting, Value: 999-999999}
+auth:
+    use_auth: True # Are we using an auth login system e.g. onelogin
+    config_path: ./ui/onelogin #where the settings files are settings.json and advanced_settings.json
+    module_source: ../auth/saml_auth.py # dynamically loaded module (in case you want another login authority e.g. oauth)
+    module: saml_auth # name of class in 'auth.module_source'
+    class: SamlAuth # see above
+    # onelogin specifcs
+    appid: aaa # onelogin specific. e.g. "{{ onelogin_server }}/trust/saml2/http-redirect/slo/{{ appid }}"
+    onelogin_server: xxx.onelogin.com # "{{ onelogin_server }}/trust/saml2/http-redirect/slo/{{ appid }}"
+    x509cert: MIIEN
+    dart_server: https://localhost:5000
+    ssl_cert_path: ./ui/onelogin/cert.pem # for local dev if you wan to emulate https
+    ssl_key_path: ./ui/onelogin/key.pem   # use key/cert locally.
+    dart_client_key: uuid # uuid to alow api (non-ui) calls
+    dart_client_secret:   # to be made from the dart-client
+    private_key: '' # usually not required, only 'auth.x509cert' is.

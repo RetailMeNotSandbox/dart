@@ -1,7 +1,7 @@
 import json
 
 from flask.ext.jsontools import JsonSerializableBase
-from sqlalchemy import BigInteger, Column, Integer, TIMESTAMP, String, Text
+from sqlalchemy import BigInteger, Column, Integer, TIMESTAMP, String, Text, Boolean
 from sqlalchemy.dialects.postgresql import JSONB
 from dart.model.action import Action
 from dart.model.accounting import Accounting
@@ -16,13 +16,15 @@ from dart.model.message import Message
 from dart.model.mutex import Mutex
 from dart.model.subscription import Subscription, SubscriptionElement
 from dart.model.trigger import Trigger
+from dart.model.user import User
+from dart.model.api_key import ApiKey
 from dart.model.workflow import Workflow, WorkflowInstance
 from dart.util.json_util import DartJsonEncoder
 
 
 class VersionedAuditableSerializable(JsonSerializableBase):
     id = Column(String(length=36), primary_key=True)
-    version_id = Column(Integer, nullable=False, server_default='0')
+    version_id = Column(Integer, index=True, nullable=False, server_default='0')
     created = Column(TIMESTAMP, server_default=db.func.current_timestamp())
     updated = Column(TIMESTAMP, server_default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
     __mapper_args__ = {"version_id_col": version_id}
@@ -92,7 +94,7 @@ class SubscriptionElementDao(db.Model, VersionedAuditableSerializable):
     __tablename__ = 'subscription_element'
     __modelclass__ = SubscriptionElement
     subscription_id = Column(String(length=36), nullable=False)
-    s3_path = Column(String(length=1024), nullable=False)
+    s3_path = Column(String(length=1024), index=True, nullable=False)
     file_size = Column(BigInteger, nullable=False)
     state = Column(String(length=50), nullable=False)
     action_id = Column(String(length=36))
@@ -109,7 +111,7 @@ class MessageDao(db.Model, VersionedAuditableSerializable):
     ecs_cluster = Column(String(length=70), nullable=False)
     ecs_container_instance_arn = Column(String(length=256), nullable=False)
     ecs_task_arn = Column(String(length=256), nullable=False)
-    state = Column(String(length=50), nullable=False)
+    state = Column(String(length=50), index=True, nullable=False)
 
 
 class AccountingDao(db.Model, VersionedAuditableSerializable):
@@ -118,7 +120,7 @@ class AccountingDao(db.Model, VersionedAuditableSerializable):
     user_id = Column(String(length=128), nullable=False)
     state = Column(String(length=32), nullable=False)
     entity = Column(String(length=32), nullable=False)
-    params = Column(String(length=128), nullable=False)
+    params = Column(String(length=1024), nullable=False)
     return_code = Column(String(length=4), nullable=False)
     api_version = Column(String(length=4), nullable=False)
     extra = Column(String(length=128), nullable=True)
@@ -128,3 +130,21 @@ class MutexDao(db.Model, VersionedAuditableSerializable):
     __modelclass__ = Mutex
     name = Column(String(length=255), unique=True, nullable=False)
     state = Column(String(length=50), nullable=False)
+
+
+class UserDao(db.Model, VersionedAuditableSerializable):
+    __tablename__ = 'user'
+    __modelclass__ = User
+    email = Column(String(length=255), unique=True, nullable=False)
+    first_name = Column(String(length=255), unique=False, nullable=True)
+    last_name = Column(String(length=255), unique=False, nullable=True)
+    is_authenticated = Column(Boolean, server_default='false', nullable=False)
+    session_expiration = Column(TIMESTAMP, server_default=db.func.current_timestamp())
+
+
+class ApiKeyDao(db.Model, VersionedAuditableSerializable):
+    __tablename__ = 'api_key'
+    __modelclass__ = ApiKey
+    user_id = Column(String(length=36), unique=False, nullable=False)
+    api_key = Column(String(length=255), unique=True, nullable=False)
+    api_secret = Column(String(length=255), unique=False, nullable=False)

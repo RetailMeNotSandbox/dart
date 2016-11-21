@@ -30,7 +30,7 @@ class Engine(BaseModel):
 @dictable
 class EngineData(object):
     def __init__(self, name, description, options_json_schema, supported_action_types, ecs_task_definition=None,
-                 ecs_task_definition_arn=None, tags=None):
+                 ecs_task_definition_arn=None, tags=None, user_id='anonymous'):
         """
         :type name: str
         :type description: str
@@ -39,6 +39,7 @@ class EngineData(object):
         :type ecs_task_definition: dict
         :type ecs_task_definition_arn: str
         :type tags: list[str]
+        :type user_id: str
         """
         self.name = name
         self.description = description
@@ -47,6 +48,7 @@ class EngineData(object):
         self.ecs_task_definition = ecs_task_definition
         self.ecs_task_definition_arn = ecs_task_definition_arn
         self.tags = tags or []
+        self.user_id = user_id
 
 
 @dictable

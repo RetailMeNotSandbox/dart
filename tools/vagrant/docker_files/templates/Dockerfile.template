@@ -6,12 +6,21 @@ RUN yum install -y \
     vim-enhanced \
     mlocate \
     git \
+    gcc \
     python-pip \
     python-devel \ 
     postgres-devel \
     postgres-contrib \
     libpqxx-devel \
     npm
+
+RUN yum install -y \
+    libxml2-devel \
+    xmlsec1-devel \
+    xmlsec1-openssl-devel \
+    libtool-ltdl-devel \
+    libxml2 \
+    libxslt
 
 Run pip install --upgrade pip && \
     pip install email

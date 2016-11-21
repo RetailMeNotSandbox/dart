@@ -45,7 +45,8 @@ class ActionState(object):
     @staticmethod
     def all():
         return [ActionState.HAS_NEVER_RUN, ActionState.QUEUED, ActionState.PENDING, ActionState.RUNNING,
-                ActionState.FINISHING, ActionState.COMPLETED, ActionState.FAILED, ActionState.TEMPLATE]
+                ActionState.FINISHING, ActionState.COMPLETED, ActionState.FAILED, ActionState.SKIPPED,
+                ActionState.TEMPLATE]
 
 
 class OnFailure(object):

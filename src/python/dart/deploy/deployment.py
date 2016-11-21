@@ -7,13 +7,6 @@ _logger = logging.getLogger(__name__)
 
 
 class DeploymentTool(object):
-
-    def _get_dart_host(self, config):
-        elb_params = config['cloudformation_stacks']['elb']['boto_args']['Parameters']
-        rs_name_param = self._get_element(elb_params, 'ParameterKey', 'RecordSetName')
-        dart_host = rs_name_param['ParameterValue']
-        return dart_host
-
     @staticmethod
     def _wait_for_stack_completion_and_get_outputs(stack_name, assert_outputs_len=None):
         _logger.info('waiting for stack to finish: %s' % stack_name)
@@ -21,7 +14,7 @@ class DeploymentTool(object):
         while True:
             response = boto3.client('cloudformation').describe_stacks(StackName=stack_name)
             status = response['Stacks'][0]['StackStatus']
-            if status == 'CREATE_IN_PROGRESS':
+            if status in ['CREATE_IN_PROGRESS', 'UPDATE_IN_PROGRESS', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS']:
                 time.sleep(7)
                 continue
             if status in ['CREATE_COMPLETE', 'UPDATE_COMPLETE']:
@@ -44,10 +37,3 @@ class DeploymentTool(object):
                     _logger.info('done')
                     return
             time.sleep(7)
-
-    @staticmethod
-    def _get_element(l, k, v):
-        for e in l:
-            if e[k] == v:
-                return e
-        raise Exception('element with %s: %s not found' % (k, v))

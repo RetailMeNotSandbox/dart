@@ -14,6 +14,16 @@ class EmrActionTypes(object):
                     'description': 'The contents of this script will be executed as a bootstrap step',
                     "x-schema-form": {"type": "textarea"}
                 },
+                'configuration_overrides': {
+                    'type': ['string', 'null'],
+                    'description':
+                        """
+                        Optional configuration overrides as a JSON array of Amazon EMR Configuration objects.
+                        See the following for a detailed description of the format:
+                        http://docs.aws.amazon.com/ElasticMapReduce/latest/ReleaseGuide/emr-configure-apps.html
+                        """,
+                    "x-schema-form": {"type": "textarea"}
+                }
             },
             'additionalProperties': False,
             'required': [],

@@ -1,7 +1,12 @@
 import json
+
 from flask import Blueprint, request, current_app
 from flask.ext.jsontools import jsonapi
+from flask.ext.login import login_required
+from flask_login import current_user
+
 from jsonpatch import JsonPatch
+
 from dart.model.trigger import Trigger
 from dart.service.filter import FilterService
 from dart.service.trigger import TriggerService
@@ -13,15 +18,17 @@ api_trigger_bp = Blueprint('api_trigger', __name__)
 
 
 @api_trigger_bp.route('/trigger', methods=['POST'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
 def post_trigger():
     trigger = Trigger.from_dict(request.get_json())
-    return {'results': trigger_service().save_trigger(trigger).to_dict()}
+    return {'results': trigger_service().save_trigger(trigger=trigger, user_id=current_user.email).to_dict()}
 
 
 @api_trigger_bp.route('/trigger/<trigger>', methods=['GET'])
+@login_required
 @fetch_model
 @jsonapi
 def get_trigger(trigger):
@@ -29,6 +36,7 @@ def get_trigger(trigger):
 
 
 @api_trigger_bp.route('/trigger', methods=['GET'])
+@login_required
 @jsonapi
 def find_triggers():
     limit = int(request.args.get('limit', 20))
@@ -44,6 +52,7 @@ def find_triggers():
 
 
 @api_trigger_bp.route('/trigger_type', methods=['GET'])
+@login_required
 @jsonapi
 def get_trigger_types():
     limit = int(request.args.get('limit', 20))
@@ -58,6 +67,7 @@ def get_trigger_types():
 
 
 @api_trigger_bp.route('/trigger/<trigger>', methods=['PUT'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -67,6 +77,7 @@ def put_trigger(trigger):
 
 
 @api_trigger_bp.route('/trigger/<trigger>', methods=['PATCH'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi
@@ -93,6 +104,7 @@ def update_trigger(trigger, updated_trigger):
 
 
 @api_trigger_bp.route('/trigger/<trigger>', methods=['DELETE'])
+@login_required
 @fetch_model
 @accounting_track
 @jsonapi

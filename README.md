@@ -89,6 +89,8 @@ dart (with a particular event id) in order to trigger dart workflows.
   * create a Route53 hosted zone
 * install python
 * install pip
+* install libxmlsec1
+* install libmagic
 * install git
 * install npm
 * install grunt
@@ -289,5 +291,7 @@ elements
 
 ## REST api documentation
 
-See the draft API specification in Swagger 2.0 format at `src/swagger/swagger.yaml`.
-See the source code at `src/python/dart/web/api`.
+See the draft API specification in Swagger 2.0 format at `src/python/dart/web/api/swagger.yaml` or via Swagger-UI
+at http://your-dart-host-and-port/apidocs/index.html
+ 
+See the source code at `src/python/dart/web/api` for implementation details.

@@ -2,6 +2,7 @@
 
 DOCKER_IMAGE=${2}
 
+source ./docker-local-init.sh
 pushd ../../ > /dev/null
 
 

@@ -61,6 +61,13 @@ dart:
             incoming_message_class: boto.sqs.message.RawMessage
 
 
+cloudformation_stacks:
+    elb:
+        boto_args:
+            Parameters:
+                - {ParameterKey: RecordSetName, ParameterValue: localhost, UsePreviousValue: false}
+
+
 triggers:
     scheduled:
         cloudwatch_scheduled_events_sns_arn:
@@ -238,3 +245,30 @@ logging:
     root:
         level: INFO
         handlers: [console]
+
+auth:
+    use_auth: True
+    config_path: ./ui/onelogin
+    module_source: ../auth/dummy_saml_auth.py
+    module: dummy_saml_auth
+    class: DummySamlAuth
+    appid: 000
+    onelogin_server: https://rmn.onelogin.com
+    private_key: ''
+    x509cert: XXX
+    dart_server: https://localhost:5000
+    ssl_cert_path: ./ui/onelogin/cert.pem
+    ssl_key_path: ./ui/onelogin/key.pem
+    dart_client_key: be3f29dd-8a1e-4fba-b2c8-f9b250009bd8
+    dart_client_secret: 0f01ba8f-2536-4e41-92d3-a86ae541404c
+    predefined_auth_services:
+      - decode_dart@rmn.com
+        b79b7691-81dd-4b75-ba3a-1cc2f4a5bbd5
+        c907390a-0bb7-4bb9-b26b-53f2f5312f07
+      - portico_dart@rmn.com
+        f4f0bff1-3479-45bc-82b2-69d65f71a749
+        6d32429b-7e22-468a-b538-95277a4f164e
+      - savor_dart@rmn.com
+        93d1fc14-13af-4b5f-9754-e862005047cf
+        810d49d2-8564-44a0-a35a-d13e4434549c
+

@@ -22,6 +22,7 @@ class TestWorkflowCrud(unittest.TestCase):
     def test_crud(self):
         wf = Workflow(data=WorkflowData(name='test-workflow', datastore_id=self.datastore.id, engine_name='no_op_engine'))
         posted_wf = self.dart.save_workflow(wf, self.datastore.id)
+        wf.data.user_id = posted_wf.data.user_id
         self.assertEqual(posted_wf.data.to_dict(), wf.data.to_dict())
 
         workflow = self.dart.get_workflow(posted_wf.id)

@@ -155,7 +155,7 @@ class DatastoreService(object):
 
     def handle_datastore_state_change(self, datastore, previous_state, updated_state):
         if previous_state != DatastoreState.ACTIVE and updated_state == DatastoreState.ACTIVE:
-            self._trigger_proxy.try_next_action(datastore.id)
+            self._trigger_proxy.try_next_action({'datastore_id':datastore.id})
 
     def clone_datastore(self, source_datastore, **data_property_overrides):
         datastore = Datastore.from_dict(source_datastore.to_dict())

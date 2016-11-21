@@ -1,0 +1,31 @@
+{
+    "strict": true,
+    "debug": true,
+    "sp": {
+        "entityId": "{{ dart_server }}/auth/login/metadata/",
+        "assertionConsumerService": {
+            "url": "{{ dart_server  }}/auth/login",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "{{ dart_server }}/?sls",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+        "x509cert": "{{ x509cert  }}",
+        "privateKey": "{{ private_key }}"
+    },
+    "idp": {
+        "entityId": "https://app.onelogin.com/saml/metadata/{{ appid }}",
+        "singleSignOnService": {
+            "url": "{{ onelogin_server }}/trust/saml2/http-post/sso/{{ appid }}",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "singleLogoutService": {
+            "url": "{{ onelogin_server }}/trust/saml2/http-redirect/slo/{{ appid }}",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "{{ x509cert }}",
+        "privateKey": "{{ private_key }}"
+    }
+}

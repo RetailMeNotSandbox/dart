@@ -81,7 +81,7 @@ class GraphEntityResolverService(object):
 
             for datastore_id in affected_datastore_ids:
                 try:
-                    self._trigger_proxy.try_next_action(datastore_id)
+                    self._trigger_proxy.try_next_action({'datastore_id':datastore_id})
                 except Exception:
                     _logger.error(json.dumps(traceback.format_exc()))
 

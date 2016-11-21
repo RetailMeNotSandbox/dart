@@ -272,9 +272,18 @@ class ActionService(object):
         ActionDao.query.filter(ActionDao.data['workflow_instance_id'].astext == workflow_instance_id).delete(False)
         db.session.commit()
 
-    def clone_workflow_actions(self, source_actions, target_datastore_id, **data_property_overrides):
+    def clone_workflow_actions(self, log_info, source_actions, target_datastore_id, **data_property_overrides):
         max_order_idx = self._get_max_order_idx(target_datastore_id)
         for action in source_actions:
+
+            action.data.tags = action.data.tags if (action.data.tags) else []
+            if (log_info and log_info.get('wf_uuid')):
+                action.data.tags.append(log_info.get('wf_uuid'))
+
+            user_id = 'anonymous'
+            if (log_info and log_info.get('user_id')):
+                action.data.user_id = log_info.get('user_id')
+
             max_order_idx += 1
             action.data.order_idx = max_order_idx
             db.session.add(self._clone_workflow_action_to_dao(action, **data_property_overrides))

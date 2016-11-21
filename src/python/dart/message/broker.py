@@ -65,6 +65,9 @@ class SqsJsonMessageBroker(MessageBroker):
 
         sqs_message = self.queue.read(wait_time_seconds=wait_time_seconds)
         if not sqs_message:
+            _logger.debug("No message in queue {queue_name}, waited {message_wait_time} seconds.".
+                         format(queue_name=self._queue_name,
+                                message_wait_time=wait_time_seconds))
             return
 
         sqs_message_body = self._get_body(sqs_message)

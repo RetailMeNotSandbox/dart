@@ -30,7 +30,7 @@ class ManualTriggerProcessor(TriggerProcessor):
         """ :type message: dict
             :type trigger_service: dart.service.trigger.TriggerService """
         # always trigger a manual message
-        self._workflow_service.run_triggered_workflow(message['workflow_id'], self._trigger_type)
+        self._workflow_service.run_triggered_workflow(message, self._trigger_type)
 
         # return an empty list since this is not associated with a particular trigger instance
         return []
@@ -38,5 +38,5 @@ class ManualTriggerProcessor(TriggerProcessor):
     def teardown_trigger(self, trigger, trigger_service):
         pass
 
-    def send_evaluation_message(self, workflow_id):
-        self._trigger_proxy.process_trigger(self._trigger_type, {'workflow_id': workflow_id})
+    def send_evaluation_message(self, workflow_json):
+        self._trigger_proxy.process_trigger(self._trigger_type, workflow_json)

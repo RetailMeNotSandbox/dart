@@ -17,8 +17,11 @@ class TriggerProxy(object):
         args = {'call': TriggerCall.PROCESS_TRIGGER, 'trigger_type_name': trigger_type.name, 'message': message}
         self._trigger_broker.send_message(args)
 
-    def try_next_action(self, datastore_id):
-        args = {'call': TriggerCall.TRY_NEXT_ACTION, 'datastore_id': datastore_id}
+    def try_next_action(self, datastore_json):
+        args = {'call': TriggerCall.TRY_NEXT_ACTION,
+                'datastore_id': datastore_json.get('datastore_id'),
+                'log_info': datastore_json.get('log_info')}
+
         self._trigger_broker.send_message(args)
 
     def complete_action(self, action_id, action_state, error_message):

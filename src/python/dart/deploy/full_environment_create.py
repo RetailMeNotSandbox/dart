@@ -10,6 +10,7 @@ from dart.config.config import configuration, get_secrets_config, dart_root_rela
 from dart.deploy.partial_environment_create import PartialEnvironmentCreateTool
 from dart.util.rand import random_id
 from dart.util.shell import call
+from dart.util.config import _get_dart_host, _get_element
 
 _logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class FullEnvironmentCreateTool(PartialEnvironmentCreateTool):
     def run(self):
         _logger.info('reading configuration...')
         output_config = copy.deepcopy(configuration(self.input_config_path, suppress_decryption=True))
-        dart_host = self._get_dart_host(output_config)
+        dart_host = _get_dart_host(output_config)
         _logger.info('setting up new dart full environment: %s' % dart_host)
 
         _logger.info('verifying s3 buckets do not exist')
@@ -57,12 +58,12 @@ class FullEnvironmentCreateTool(PartialEnvironmentCreateTool):
         iam_outputs = self._wait_for_stack_completion_and_get_outputs(iam_stack_name, 7)
         sns_outputs = self._wait_for_stack_completion_and_get_outputs(sns_stack_name, 1)
 
-        uds_inpf_role = self._get_element(iam_outputs, 'OutputKey', 'UdsInstanceProfileRole')['OutputValue']
-        uds_ec2_inpf = self._get_element(iam_outputs, 'OutputKey', 'UdsEc2InstanceProfile')['OutputValue']
-        uds_ec2_inpf_role = self._get_element(iam_outputs, 'OutputKey', 'UdsEc2InstanceProfileRole')['OutputValue']
-        ecs_container_inpf = self._get_element(iam_outputs, 'OutputKey', 'EcsContainerInstanceProfile')['OutputValue']
-        ecs_container_inpf_role = self._get_element(iam_outputs, 'OutputKey', 'EcsContainerInstanceProfileRole')['OutputValue']
-        ecs_service_role = self._get_element(iam_outputs, 'OutputKey', 'EcsServiceRole')['OutputValue']
+        uds_inpf_role = _get_element(iam_outputs, 'OutputKey', 'UdsInstanceProfileRole')['OutputValue']
+        uds_ec2_inpf = _get_element(iam_outputs, 'OutputKey', 'UdsEc2InstanceProfile')['OutputValue']
+        uds_ec2_inpf_role = _get_element(iam_outputs, 'OutputKey', 'UdsEc2InstanceProfileRole')['OutputValue']
+        ecs_container_inpf = _get_element(iam_outputs, 'OutputKey', 'EcsContainerInstanceProfile')['OutputValue']
+        ecs_container_inpf_role = _get_element(iam_outputs, 'OutputKey', 'EcsContainerInstanceProfileRole')['OutputValue']
+        ecs_service_role = _get_element(iam_outputs, 'OutputKey', 'EcsServiceRole')['OutputValue']
         sns_arn = sns_outputs[0]['OutputValue']
 
         _logger.info('updating configuration with sns arn')
@@ -71,10 +72,10 @@ class FullEnvironmentCreateTool(PartialEnvironmentCreateTool):
         _logger.info('updating configuration with subscription queue urls/arns')
         subscription_queue_arn, subscription_queue_url = self._ensure_queue_exists(output_config, 'subscription_queue')
         s3_params = output_config['cloudformation_stacks']['s3']['boto_args']['Parameters']
-        self._get_element(s3_params, 'ParameterKey', 'DartConfigBucket')['ParameterValue'] = config_bucket_name
-        self._get_element(s3_params, 'ParameterKey', 'DartDataBucket')['ParameterValue'] = data_bucket_name
-        self._get_element(s3_params, 'ParameterKey', 'SubscriptionQueueUrl')['ParameterValue'] = subscription_queue_url
-        self._get_element(s3_params, 'ParameterKey', 'SubscriptionQueueArn')['ParameterValue'] = subscription_queue_arn
+        _get_element(s3_params, 'ParameterKey', 'DartConfigBucket')['ParameterValue'] = config_bucket_name
+        _get_element(s3_params, 'ParameterKey', 'DartDataBucket')['ParameterValue'] = data_bucket_name
+        _get_element(s3_params, 'ParameterKey', 'SubscriptionQueueUrl')['ParameterValue'] = subscription_queue_url
+        _get_element(s3_params, 'ParameterKey', 'SubscriptionQueueArn')['ParameterValue'] = subscription_queue_arn
 
         _logger.info('creating s3 and logs stacks')
         s3_stack_name = self._create_stack('s3', output_config)
@@ -212,8 +213,8 @@ class FullEnvironmentCreateTool(PartialEnvironmentCreateTool):
 
         _logger.info('waiting for logs stack')
         logs_outputs = self._wait_for_stack_completion_and_get_outputs(logs_stack_name, 2)
-        syslog_log_group_name = self._get_element(logs_outputs, 'OutputKey', 'DartSyslog')['OutputValue']
-        misc_log_group_name = self._get_element(logs_outputs, 'OutputKey', 'DartMisc')['OutputValue']
+        syslog_log_group_name = _get_element(logs_outputs, 'OutputKey', 'DartSyslog')['OutputValue']
+        misc_log_group_name = _get_element(logs_outputs, 'OutputKey', 'DartMisc')['OutputValue']
 
         self._handle_docker_concerns(cwl_image, eng_cfg, misc_log_group_name, output_config, syslog_log_group_name)
 
@@ -263,7 +264,7 @@ class FullEnvironmentCreateTool(PartialEnvironmentCreateTool):
 
     def _set_cfn_boto_param_value(self, config, cfn_key, parameter_key, parameter_value):
         params = config['cloudformation_stacks'][cfn_key]['boto_args']['Parameters']
-        self._get_element(params, 'ParameterKey', parameter_key)['ParameterValue'] = parameter_value
+        _get_element(params, 'ParameterKey', parameter_key)['ParameterValue'] = parameter_value
 
     @staticmethod
     def _role_arn(role, aws_account_id):

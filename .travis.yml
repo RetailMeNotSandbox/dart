@@ -41,9 +41,13 @@ before_install:
 
   # These are unit tests that are not running in a docker-container.
   - pip install -r src/python/requirements.txt
+  # Install the dart source itself into the virtualenv to enable running the swagger tool
+  - pip install -e src/python
+  # Run the swagger export tool here to ensure that the swagger definitions are up-to-date
+  - python src/python/dart/tool/export_swagger_definitions.py src/python/dart/web/api/swagger.yaml --dry-run
   # we do not use nosetests because it does not run the class setup method.
   - python tools/vagrant/tests/test_generate_deployment_files.py
-  - cd src && PYTHONPATH=$PYTHONPATH:..:./python/ nosetests python/dart/test/accounting
+  #- cd src && PYTHONPATH=$PYTHONPATH:..:./python/ nosetests python/dart/test/accounting
 
 install:
   # kill travis postgres instance so we can use ours 
@@ -54,7 +58,7 @@ install:
 
 before_script:
   # try to create the DB tables until you succeed.  
-  - STOP=1; while [ $STOP -gt 0 ]; do docker-compose ps web; docker-compose logs web; docker-compose exec web curl -XPOST "http://127.0.0.1:5000/admin/create_all"; STOP=$?; sleep 5; done
+  - STOP=1; while [ $STOP -gt 0 ]; do docker-compose ps web; sh -c 'docker-compose logs web | tail -10'; docker-compose exec web curl -k -XPOST "https://127.0.0.1:5000/admin/create_all"; STOP=$?; sleep 15; done
 
   # try to populate the engine table until you succeed.  
   - STOP=1; while [ $STOP -gt 0 ]; do docker-compose exec web python /tmp/src/python/dart/engine/no_op/add_engine.py; STOP=$?; sleep 2; done
@@ -65,6 +69,7 @@ script:
   - docker-compose exec web python -m unittest discover /tmp/src/python/dart/test/schema/ "test_*.py"
   - docker-compose exec web python -m unittest discover /tmp/src/python/dart/test/graph "test_*.py"
   - docker-compose exec web python -m unittest discover /tmp/src/python/dart/test/crud "test_*.py"  
+  - docker-compose exec web python -m unittest discover /tmp/src/python/dart/engine/emr/test "test_start_datastore.py"
 
 # send notifications to DWH_alerts room
 notifications:
