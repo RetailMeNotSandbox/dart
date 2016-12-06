@@ -17,8 +17,8 @@ from dart.util.rand import random_id
 @injectable
 class TriggerService(object):
     def __init__(self, action_service, datastore_service, workflow_service, manual_trigger_processor,
-                 subscription_batch_trigger_processor, workflow_completion_trigger_processor,
-                 event_trigger_processor, scheduled_trigger_processor, super_trigger_processor, filter_service):
+                 subscription_batch_trigger_processor, workflow_completion_trigger_processor, event_trigger_processor,
+                 scheduled_trigger_processor, super_trigger_processor, retry_trigger_processor, filter_service):
         self._action_service = action_service
         self._datastore_service = datastore_service
         self._workflow_service = workflow_service
@@ -28,6 +28,7 @@ class TriggerService(object):
         self._event_trigger_processor = event_trigger_processor
         self._scheduled_trigger_processor = scheduled_trigger_processor
         self._super_trigger_processor = super_trigger_processor
+        self._retry_trigger_processor = retry_trigger_processor
         self._filter_service = filter_service
 
         self._trigger_processors = {
@@ -37,6 +38,7 @@ class TriggerService(object):
             event_trigger_processor.trigger_type().name: event_trigger_processor,
             scheduled_trigger_processor.trigger_type().name: scheduled_trigger_processor,
             super_trigger_processor.trigger_type().name: super_trigger_processor,
+            retry_trigger_processor.trigger_type().name: retry_trigger_processor,
         }
 
         params_schemas = []
@@ -76,6 +78,8 @@ class TriggerService(object):
         trigger_type_name = trigger.data.trigger_type_name
         if trigger_type_name == self._manual_trigger_processor.trigger_type().name:
             raise DartValidationException('manual triggers cannot be saved')
+        if trigger_type_name == self._retry_trigger_processor.trigger_type().name:
+            raise DartValidationException('retry triggers cannot be saved')
         trigger_processor = self._trigger_processors.get(trigger_type_name)
         if not trigger_processor:
             raise DartValidationException('unknown trigger_type_name: %s' % trigger_type_name)
@@ -157,6 +161,8 @@ class TriggerService(object):
         trigger_type_name = trigger.data.trigger_type_name
         if trigger_type_name == self._manual_trigger_processor.trigger_type().name:
             raise DartValidationException('manual triggers cannot be saved')
+        if trigger_type_name == self._retry_trigger_processor.trigger_type().name:
+            raise DartValidationException('retry triggers cannot be saved')
 
         trigger_processor = self._trigger_processors.get(trigger_type_name)
         trigger = patch_difference(TriggerDao, source_trigger, trigger)

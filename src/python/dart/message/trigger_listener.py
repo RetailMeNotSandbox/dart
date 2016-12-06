@@ -126,15 +126,19 @@ class TriggerListener(object):
                 if action.data.on_failure == ActionOnFailure.DEACTIVATE:
                     try_next_action = False
                     if wf and wfi:
-                        self._workflow_service.update_workflow_state(wf, WorkflowState.INACTIVE)
                         self._workflow_service.update_workflow_instance_state(wfi, WorkflowInstanceState.FAILED)
+                        if wfi.data.retry_num < wf.data.retries_on_failure:
+                            retry_num = wfi.data.retry_num + 1
+                            callbacks.append(lambda: self._trigger_proxy.trigger_workflow_retry(wfid, retry_num))
+                        else:
+                            self._workflow_service.update_workflow_state(wf, WorkflowState.INACTIVE)
+                            if wf.data.on_failure == WorkflowOnFailure.DEACTIVATE:
+                                self._datastore_service.update_datastore_state(datastore, DatastoreState.INACTIVE)
                         f1 = Filter('workflow_instance_id', Operator.EQ, wfiid)
                         f2 = Filter('state', Operator.EQ, ActionState.HAS_NEVER_RUN)
                         for a in self._action_service.query_actions_all(filters=[f1, f2]):
                             error_msg = 'A prior action (id=%s) in this workflow instance failed' % action.id
                             self._action_service.update_action_state(a, ActionState.SKIPPED, error_msg)
-                        if wf.data.on_failure == WorkflowOnFailure.DEACTIVATE:
-                            self._datastore_service.update_datastore_state(datastore, DatastoreState.INACTIVE)
                         callbacks.append(lambda: self._emailer.send_workflow_failed_email(wf, wfi))
                     else:
                         self._datastore_service.update_datastore_state(datastore, DatastoreState.INACTIVE)

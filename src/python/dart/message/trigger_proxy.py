@@ -3,6 +3,7 @@ from dart.message.call import TriggerCall
 from dart.trigger.subscription import subscription_batch_trigger
 from dart.trigger.workflow import workflow_completion_trigger
 from dart.trigger.super import super_trigger
+from dart.trigger.retry import retry_trigger
 
 
 @injectable
@@ -30,6 +31,10 @@ class TriggerProxy(object):
 
     def trigger_workflow_completion(self, workflow_id):
         self.process_trigger(workflow_completion_trigger, {'workflow_id': workflow_id})
+
+    def trigger_workflow_retry(self, workflow_id, retry_num):
+        message = {'workflow_id': workflow_id, 'retry_num': retry_num}
+        self.process_trigger(retry_trigger, message)
 
     def trigger_subscription_evaluation(self, trigger_id):
         self.process_trigger(subscription_batch_trigger, {'trigger_id': trigger_id})

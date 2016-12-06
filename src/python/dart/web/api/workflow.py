@@ -141,6 +141,7 @@ def update_workflow(workflow, updated_workflow):
     sanitized_workflow.data.on_failure_email = updated_workflow.data.on_failure_email
     sanitized_workflow.data.on_success_email = updated_workflow.data.on_success_email
     sanitized_workflow.data.on_started_email = updated_workflow.data.on_started_email
+    sanitized_workflow.data.retries_on_failure = updated_workflow.data.retries_on_failure
     sanitized_workflow.data.tags = updated_workflow.data.tags
 
     # revalidate
