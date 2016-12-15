@@ -75,6 +75,7 @@ def create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, 
     keyname = emr_engine.ec2_keyname
     instance_profile = emr_engine.instance_profile
     az = emr_engine.cluster_availability_zone
+    subnet_id = emr_engine.subnet_id
     cmd = 'aws emr create-cluster' \
           ' --release-label {release_label}'\
           ' --instance-type {instance_type}'\
@@ -99,7 +100,9 @@ def create_cluster(bootstrap_actions_args, cluster_name, datastore, emr_engine, 
         log_uri=datastore.data.s3_logs_path,
         service_role=emr_engine.service_role,
         configurations=prepare_cluster_configurations(configuration_overrides),
-        ec2_attributes='KeyName=%s,AvailabilityZone=%s,InstanceProfile=%s' % (keyname, az, instance_profile),
+        ec2_attributes='KeyName=%s,AvailabilityZone=%s,InstanceProfile=%s,SubnetId=%s' % (
+            keyname, az, instance_profile, subnet_id
+        ),
         tags=' '.join(['%s=%s' % (k, v) for k, v in emr_engine.cluster_tags.iteritems()]),
         bootstrap_actions=' '.join([
             'Path="{path}",Name="{name}",Args=[{args}]'.format(
