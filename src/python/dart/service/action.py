@@ -119,12 +119,7 @@ class ActionService(object):
             .filter(ActionDao.data['datastore_id'].astext == datastore_id)\
             .filter(ActionDao.data['state'].astext == ActionState.HAS_NEVER_RUN)
         if not_in_workflow_ids:
-            query = query.filter(
-                or_(
-                    ActionDao.data['workflow_id'] == 'null',
-                    not_(ActionDao.data['workflow_id'].astext.in_(not_in_workflow_ids)),
-                ).self_group()
-            )
+            query = query.filter(ActionDao.data['workflow_id'].astext.in_(not_in_workflow_ids))
         if ensure_workflow_action:
             query = query.filter(ActionDao.data['workflow_id'] != 'null')
         query = query\
