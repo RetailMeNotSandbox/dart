@@ -6,8 +6,10 @@ from dart.context.locator import injectable
 from dart.message.call import TriggerCall
 from dart.model.action import ActionState, OnFailure as ActionOnFailure, Action
 from dart.model.datastore import DatastoreState
+from dart.model.mutex import Mutexes
 from dart.model.query import Filter, Operator
 from dart.model.workflow import WorkflowInstanceState, WorkflowState, OnFailure as WorkflowOnFailure
+from dart.service.mutex import db_mutex
 from dart.trigger.subscription import subscription_batch_trigger
 from dart.trigger.super import super_trigger
 
@@ -71,31 +73,26 @@ class TriggerListener(object):
         except Exception:
             _logger.error(json.dumps(traceback.format_exc()))
 
+    @db_mutex(Mutexes.QUEUE_NEXT_ACTION)
     def _handle_try_next_action(self, message_id, message, previous_handler_failed):
         if previous_handler_failed:
-            _logger.error('previous handler for message id={message_id} failed... see if retrying is possible. message={message}'.format(message_id=message_id, message=message))
+            _logger.error('Previous handler for message {message_id} failed; attempting retry.'.format(
+                message_id=message_id,
+                message=message,
+            ))
             return
 
         _logger.info("Next Action Trigger: message_id={message_id}, message={message}".format(message_id=message_id, message=message))
         datastore = self._datastore_service.get_datastore(message['datastore_id'])
-        running_or_queued_workflow_ids = self._action_service.find_running_or_queued_action_workflow_ids(datastore.id)
-        exists_non_workflow_action = self._action_service.exists_running_or_queued_non_workflow_action(datastore.id)
-        next_action = self._action_service.find_next_runnable_action(
-            datastore_id=datastore.id,
-            not_in_workflow_ids=running_or_queued_workflow_ids,
-            ensure_workflow_action=exists_non_workflow_action
-        )
+        next_action = self._action_service.find_next_runnable_action(datastore.id)
         if not next_action:
-            err_msg = 'datastore (id={datastore_id}) has no actions that can be run at this time. '
-            err_msg = err_msg + 'Datastore workflows running/queued = {running_queued}. '
-            err_msg = err_msg + 'exists_non_workflow_action={exists_non_workflow_action}. message={message}.'
-            _logger.error(err_msg.format(datastore_id=datastore.id,
-                                         running_queued=running_or_queued_workflow_ids,
-                                         exists_non_workflow_action=exists_non_workflow_action,
-                                         message=message))
+            err_msg = 'Datastore {datastore_id} has no runnable actions for message {message_id}.'
+            _logger.error(err_msg.format(
+                datastore_id=datastore.id,
+                message=message_id,
+            ))
             return
 
-        assert isinstance(next_action, Action)
         if next_action.data.action_type_name == 'consume_subscription':
             self._subscription_element_service.assign_subscription_elements(next_action)
 

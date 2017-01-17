@@ -95,16 +95,6 @@ class ActionService(object):
         return [r.to_model() for r in query.all()]
 
     @staticmethod
-    def find_running_or_queued_action_workflow_ids(datastore_id):
-        resultset = db.session\
-            .query(func.distinct(ActionDao.data['workflow_id'].astext))\
-            .filter(ActionDao.data['datastore_id'].astext == datastore_id)\
-            .filter(ActionDao.data['state'].astext.in_([ActionState.RUNNING, ActionState.QUEUED]))\
-            .filter(ActionDao.data['workflow_id'] != 'null')\
-            .all()
-        return [r[0] for r in resultset]
-
-    @staticmethod
     def exists_running_or_queued_non_workflow_action(datastore_id):
         query = ActionDao.query\
             .filter(ActionDao.data['datastore_id'].astext == datastore_id)\
@@ -114,24 +104,25 @@ class ActionService(object):
         return len(list(query.all())) > 0
 
     @staticmethod
-    def find_next_runnable_action(datastore_id, not_in_workflow_ids, ensure_workflow_action):
-        query = ActionDao.query\
-            .filter(ActionDao.data['datastore_id'].astext == datastore_id)\
-            .filter(ActionDao.data['state'].astext == ActionState.HAS_NEVER_RUN)
-        if not_in_workflow_ids:
-            query = query.filter(
-                or_(
-                    ActionDao.data['workflow_id'] == 'null',
-                    not_(ActionDao.data['workflow_id'].astext.in_(not_in_workflow_ids)),
-                ).self_group()
-            )
-        if ensure_workflow_action:
-            query = query.filter(ActionDao.data['workflow_id'] != 'null')
-        query = query\
-            .order_by(ActionDao.data['order_idx'].cast(Float))\
-            .limit(1)
-        result = [a for a in query.all()]
-        return result[0].to_model() if result else None
+    def find_next_runnable_action(datastore_id):
+        """Get the next action instance to be run for a datastore."""
+        # exclude wfs with running or queued actions
+        disqualified_wf_ids = db.session \
+            .query(func.distinct(ActionDao.data['workflow_id'].astext)) \
+            .filter(ActionDao.data['datastore_id'].astext == datastore_id) \
+            .filter(ActionDao.data['state'].astext.in_([ActionState.RUNNING, ActionState.QUEUED])) \
+            .filter(ActionDao.data['workflow_instance_id'] != 'null') \
+            .subquery()
+
+        result = ActionDao.query \
+            .filter(ActionDao.data['datastore_id'].astext == datastore_id) \
+            .filter(ActionDao.data['state'].astext == ActionState.HAS_NEVER_RUN) \
+            .filter(not_(ActionDao.data['workflow_id'].astext.in_(disqualified_wf_ids))) \
+            .filter(ActionDao.data['workflow_id'] != 'null') \
+            .order_by(ActionDao.data['order_idx'].cast(Float)) \
+            .first()
+
+        return result.to_model() if result else None
 
     @staticmethod
     def _find_action_query(datastore_id=None, datastore_state=None, gt_order_idx=None, limit=None, action_type_names=None, states=None, workflow_id=None, workflow_instance_id=None, order_by=None, offset=None):

@@ -8,10 +8,11 @@ class MutexState(object):
 
 class Mutexes(object):
     START_ENGINE_TASK = 'START_ENGINE_TASK'
+    QUEUE_NEXT_ACTION = 'QUEUE_NEXT_ACTION'
 
     @staticmethod
     def all():
-        return [Mutexes.START_ENGINE_TASK]
+        return [Mutexes.START_ENGINE_TASK, Mutexes.QUEUE_NEXT_ACTION]
 
 @dictable
 class Mutex(BaseModel):
