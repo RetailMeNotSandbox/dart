@@ -26,6 +26,9 @@ def yield_s3_keys(bucket, s3_path_root_prefix, s3_path_start_prefix_inclusive=No
     start_key_prefix = get_key_name(s3_path_start_prefix_inclusive) if s3_path_start_prefix_inclusive else None
     first_key = bucket.get_all_keys(prefix=start_key_prefix, max_keys=1) if start_key_prefix else None
     marker = first_key[0].key if first_key else ''
+    if s3_path_start_prefix_inclusive and not marker:
+        # A start prefix has been given, but no data matches it
+        return
 
     if first_key and (not s3_path_regex_filter or re.search(s3_path_regex_filter, get_s3_path(first_key[0]))):
         yield first_key[0]
