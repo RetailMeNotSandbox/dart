@@ -23,14 +23,9 @@ def yield_s3_keys(bucket, s3_path_root_prefix, s3_path_start_prefix_inclusive=No
     s3_path_end_prefix_exclusive = substitute_date_tokens(s3_path_end_prefix_exclusive, now, s3_path_end_prefix_exclusive_date_offset_in_seconds)
     s3_path_regex_filter = substitute_date_tokens(s3_path_regex_filter, now, s3_path_regex_filter_date_offset_in_seconds)
 
-    start_key_prefix = get_key_name(s3_path_start_prefix_inclusive) if s3_path_start_prefix_inclusive else None
-    first_key = bucket.get_all_keys(prefix=start_key_prefix, max_keys=1) if start_key_prefix else None
-    marker = first_key[0].key if first_key else ''
-
-    if first_key and (not s3_path_regex_filter or re.search(s3_path_regex_filter, get_s3_path(first_key[0]))):
-        yield first_key[0]
-
-    for key_obj in bucket.list(prefix=get_key_name(s3_path_root_prefix), marker=marker):
+    marker = ''
+    for key_obj in bucket.list(prefix=get_key_name(s3_path_start_prefix_inclusive or s3_path_root_prefix),
+                               marker=marker):
         s3_path = get_s3_path(key_obj)
         if s3_path.rstrip('/') == s3_path_root_prefix.rstrip('/'):
             continue
