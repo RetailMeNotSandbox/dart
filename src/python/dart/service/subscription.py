@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm.exc import NoResultFound
 from dart.context.locator import injectable
 from dart.model.exception import DartValidationException
-from dart.model.orm import SubscriptionDao, DatasetDao, SubscriptionElementDao, TriggerDao
+from dart.model.orm import SubscriptionDao, DatasetDao, SubscriptionElementDao, TriggerDao, WorkflowInstanceDao
 from dart.context.database import db
 from dart.model.subscription import SubscriptionElementState, SubscriptionState, SubscriptionElementStats
 from dart.schema.base import default_and_validate
@@ -326,9 +326,10 @@ class SubscriptionElementService(object):
         err_msg = 'unexpected action name: %s' % action.data.action_type_name
         assert action.data.action_type_name == 'consume_subscription', err_msg
 
+        wf_instance_id = action.data.args['workflow_instance_id']
         s_id = action.data.args['subscription_id']
 
-        if self._subscription_batch_trigger_exists(s_id):
+        if self._is_subscription_trigger(wf_instance_id):
             state = SubscriptionElementState.RESERVED
             batch_id = self._find_next_batch_id(s_id)
             if not batch_id:
@@ -373,6 +374,14 @@ class SubscriptionElementService(object):
             .filter(TriggerDao.data['args'].op('@>')(cast(contains_arg, JSONB))) \
             .limit(1) \
             .all()
+        return len(results) > 0
+
+    @staticmethod
+    def _is_subscription_trigger(workflow_instance_id):
+        results = WorkflowInstanceDao.query \
+                .filter(WorkflowInstanceDao.id == workflow_instance_id) \
+                .filter(WorkflowInstanceDao.data['trigger_type'] == 'subscription_batch') \
+                .all()
         return len(results) > 0
 
     @staticmethod
