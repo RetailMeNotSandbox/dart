@@ -73,3 +73,13 @@ def tag_list_schema():
         'items': {'type': 'string', 'pattern': '^[a-zA-Z0-9_]+$', 'maxLength': 40},
         'minItems': 0,
     }
+
+def parallelization_parents():
+    return {
+        'x-schema-form': {'type': 'tabarray'},
+        'type': 'array',
+        'default': [],
+        'items': {'type': 'integer'},
+        'minItems': 0,
+    }
+
