@@ -104,7 +104,7 @@ class ActionData(BaseModel):
         self.end_time = end_time
         self.progress = progress
         self.order_idx = order_idx
-        self.parallelization_parents = parallelization_parents
+        self.parallelization_parents = parallelization_parents or []
         self.error_message = error_message
         self.on_failure = on_failure
         self.on_failure_email = on_failure_email or []

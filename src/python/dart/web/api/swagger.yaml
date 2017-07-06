@@ -1741,10 +1741,14 @@ definitions:
         minimum: 0.0
         type: number
         x-nullable: true
-      parallelization_idx:
-        minimum: 0.0
-        type: number
-        x-nullable: true
+      parallelization_parents:
+        default: []
+        items:
+          type: integer
+        minItems: 0
+        type: array
+        x-schema-form:
+          type: tabarray
       progress:
         type: number
         x-nullable: true
