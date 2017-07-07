@@ -65,7 +65,7 @@ class ActionData(BaseModel):
                  on_failure_email=None, on_success_email=None, engine_name=None, datastore_id=None, workflow_id=None,
                  workflow_instance_id=None, workflow_action_id=None, first_in_workflow=False, last_in_workflow=False,
                  ecs_task_arn=None, batch_job_id=None, extra_data=None, tags=None, user_id='anonymous',
-                 avg_runtime=None, completed_runs=0, parallelization_parents=None):
+                 avg_runtime=None, completed_runs=0, parallelization_parents=None, parallelization_idx=None):
         """
         :type name: str
         :type action_type_name: str
@@ -94,6 +94,7 @@ class ActionData(BaseModel):
         :type avg_runtime: datetime.timedelta
         :type completed_runs: int
         :type parallelization_parents: list[int]
+        :type parallelization_idx: int
         """
         self.name = name
         self.action_type_name = action_type_name
@@ -105,6 +106,7 @@ class ActionData(BaseModel):
         self.progress = progress
         self.order_idx = order_idx
         self.parallelization_parents = parallelization_parents or []
+        self.parallelization_idx = parallelization_idx
         self.error_message = error_message
         self.on_failure = on_failure
         self.on_failure_email = on_failure_email or []

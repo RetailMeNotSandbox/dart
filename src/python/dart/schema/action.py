@@ -18,6 +18,7 @@ def action_schema(supported_action_type_params_schema):
             'progress': {'type': ['number', 'null'], 'readonly': True},
             'order_idx': {'type': ['number', 'null'], 'minimum': 0.0},
             'parallelization_parents': parallelization_parents(),
+            'parallelization_idx': {'type': ['number', 'null'], 'minimum': 0.0},
             'error_message': {'type': ['string', 'null'], 'readonly': True, "x-schema-form": {"type": "textarea"}},
             'on_failure': {
                 'type': 'string',

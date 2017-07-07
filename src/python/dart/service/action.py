@@ -84,6 +84,8 @@ class ActionService(object):
 
     def find_actions(self, datastore_id=None, datastore_state=None, states=None, action_type_names=None, gt_order_idx=None, limit=None, workflow_id=None, workflow_instance_id=None, order_by=None, offset=None):
         rs = self._find_action_query(datastore_id, datastore_state, gt_order_idx, limit, action_type_names, states, workflow_id, workflow_instance_id, order_by, offset).all()
+        for a in rs:
+            print (a.to_model)
         return [a.to_model() for a in rs]
 
     @staticmethod
