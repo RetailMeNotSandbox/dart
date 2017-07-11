@@ -37,21 +37,28 @@ class AWS_Batch_Dag(object):
         _logger.info("AWS_Batch: using job_definition_suffix={0} and job_queue={1}".
                      format(self.job_definition_suffix, self.job_queue))
 
-    def get_action_parent_jobs(self, oaction, order_idx_2_job_ids):
+    def get_action_parent_jobs(self, oaction, parallel_idx_2_job_ids):
         dependency = []
 
         # If not the first action and no parents exist than the parent is the
         # job_id of action with order_idx == (current order_idx - 1)
-        if not oaction.data.first_in_workflow and not oaction.data.parallelization_parents:
-            dependency.append(order_idx_2_job_ids[int(oaction.data.order_idx) - 1])
+        if not oaction.data.first_in_workflow and not oaction.data.parallelization_idx:
+            if parallel_idx_2_job_ids.get((int(oaction.data.order_idx) - 1)):
+                dependency.append(parallel_idx_2_job_ids[int(oaction.data.order_idx) - 1])
+            else:
+                error_msg = "No-parallelization: Failed to match current action (order_idx={0}) with a job_id of its parent (order_idx-1) {1}. parents={2}, parallel_idx_2_job_ids={3}".format(oaction.data.order_idx, parallel_idx_2_job_ids.get((int(oaction.data.order_idx) - 1)), oaction.data.parallelization_parents, parallel_idx_2_job_ids)
+                _logger.error(error_msg)
+                raise Exception(error_msg)
 
         # If the action has parents, the parents should already exist (and be the previous job_id).
         if oaction.data.parallelization_parents:
             for parent in oaction.data.parallelization_parents:
-                if order_idx_2_job_ids.get(int(parent)):
-                    dependency.append(order_idx_2_job_ids[int(parent)])
+                if parallel_idx_2_job_ids.get(int(parent)):
+                    dependency.append(parallel_idx_2_job_ids[int(parent)])
                 else:
-                    _logger.error("Could not match current action (order_idx={0}) with a job_id of its parent order_idx {1}. parents={2}, order_idx_2_job_ids={3}".format(oaction.data.get('order_idx'), order_idx_2_job_ids.get(parent), oaction.data.get('parallelization_parents'), order_idx_2_job_ids))
+                    error_msg = "Could not match current action (order_idx={0}) with a job_id of its parent order_idx {1}. parents={2}, parallel_idx_2_job_ids={3}".format(oaction.data.order_idx, parallel_idx_2_job_ids.get(int(parent)), oaction.data.parallelization_parents, parallel_idx_2_job_ids)
+                    _logger.error(error_msg)
+                    raise Exception(error_msg)
 
         ret = [{'jobId': job} for job in dependency]
         return ret
@@ -63,9 +70,9 @@ class AWS_Batch_Dag(object):
         #self.create_s3_bucket_for_workflow_io(wf_attributes['workflow_instance_id'])
         wf_attribs = self.create_workflow_attributes_dict(wf_attributes, retries_on_failures, self.sns_arn)
         all_previous_jobs = []  # will hold an array of jobIds, one per each action placed in Batch, so we can cancel if needed
-        order_idx_2_job_ids = {}  # mapping of action to jobIds. Assumeing the jobs will be created in order, we can reach the parent when needed.
+        parallel_idx_2_job_ids = {}  # mapping of action to jobIds. Assuming the jobs will be created in order, we can reach the parent when needed.
         for oaction in single_ordered_wf_instance_actions:
-            dependency = self.get_action_parent_jobs(oaction, order_idx_2_job_ids)
+            dependency = self.get_action_parent_jobs(oaction, parallel_idx_2_job_ids)
 
             action_env = self.create_action_env_vars(action_id=oaction.id,
                                                      on_failure=oaction.data.on_failure,
@@ -73,7 +80,9 @@ class AWS_Batch_Dag(object):
                                                      workflow_instance_id=wf_attribs['workflow_instance_id'],
                                                      idx=int(oaction.data.order_idx),
                                                      s3_io_bucket=self.s3_io_bucket,
-                                                     s3_io_prefix=self.s3_io_prefix)
+                                                     s3_io_prefix=self.s3_io_prefix,
+                                                     parallelization_idx=oaction.data.parallelization_idx if oaction.data.parallelization_idx else oaction.data.order_idx,
+                                                     parallelization_parents=oaction.data.parallelization_parents if oaction.data.parallelization_parents else None)
             try:
                 if oaction.data.action_type_name == 'consume_subscription':
                     self.subscription_element_service.assign_subscription_elements(oaction)
@@ -82,8 +91,15 @@ class AWS_Batch_Dag(object):
 
                 #  job_id in action is needed so lookup_credentials(action) in action_runner.py would work correctly.
                 self.action_batch_job_id_updater(oaction, job_id)
-                order_idx_2_job_ids[int(oaction.data.order_idx)] = job_id
                 all_previous_jobs.append(job_id)
+
+                if oaction.data.parallelization_idx:
+                    # parallization parents and idx go together.  Since order_idx changes each run we need a "fixed"
+                    # parallelization idx to be used to reference parents to children in the workflow dependency.
+                    parallel_idx_2_job_ids[int(oaction.data.parallelization_idx)] = job_id
+                else:
+                    parallel_idx_2_job_ids[int(oaction.data.order_idx)] = job_id  # for older, non-parallel work flows.
+
                 _logger.info("AWS_Batch: launched job={0}, wf_id={1}, wf_instance_id={2}".
                              format(job_id, wf_attribs['workflow_id'], wf_attribs['workflow_instance_id']))
             except Exception as err:
@@ -125,12 +141,12 @@ class AWS_Batch_Dag(object):
                   This will allow us to update the version used without changing the yaml files.
             Note: It's implicitly assumed the AWS Batch job definitions are named the same as the engine names in dart.
 
-            >>> cls.get_latest_active_job_definition('road_runner', 'stg', describe_job_definitions_func_fail)
+            >>> AWS_Batch_Dag.get_latest_active_job_definition('road_runner', 'stg', lambda jobDefinitionName, status:  {'jobDefinitions': []})
             Traceback (most recent call last):
             ...
             ValueError: No job matching road_runner_stg
 
-            >>> cls.get_latest_active_job_definition('road-runner', 'prod', describe_job_definitions_func_success)
+            >>> AWS_Batch_Dag.get_latest_active_job_definition('road-runner', 'prod', lambda jobDefinitionName, status:  {'jobDefinitions': [{'revision': 2, 'jobDefinitionArn': 'arn-2'}, {'revision': 3, 'jobDefinitionArn': 'arn-3'}, {'revision': 1, 'jobDefinitionArn': 'arn-1'}]})
             'arn-3'
         """
         job_name = job_def_name
@@ -157,11 +173,11 @@ class AWS_Batch_Dag(object):
             :param action_name: action name may be truncate if total name exceed 50 characters. Also not unique.
 
             # no trimming
-            >>> cls.generate_job_name('workflowid', 120, 'actionname', 'stg')
+            >>> AWS_Batch_Dag.generate_job_name('workflowid', 120, 'actionname', 'stg')
             'workflowid_120_actionname_stg'
 
             # trimmed action name
-            >>> cls.generate_job_name('27_characters_long_workflow', 120, '25_characters_long_action', '')
+            >>> AWS_Batch_Dag.generate_job_name('27_characters_long_workflow', 120, '25_characters_long_action', '')
             '27_characters_long_workflow_120_25_characters_long'
         """
         job_name = "{0}_{1}_{2}_{3}".format(workflow_id, order_idx, action_name.replace("-", "_"),job_definition_suffix)
@@ -182,10 +198,10 @@ class AWS_Batch_Dag(object):
             :param is_last_action: is last action in workflow.
 
 
-            >>> cls.generate_env_vars(wf_attribs={'workflow_id': 22}, action_env={}, is_first_action=True, is_last_action=False)
+            >>> AWS_Batch_Dag.generate_env_vars(wf_attribs={'workflow_id': 22}, action_env={}, is_first_action=True, is_last_action=False)
             [{'name': 'workflow_id', 'value': '22'}, {'name': 'is_first_action', 'value': 'True'}, {'name': 'is_last_action', 'value': 'False'}]
 
-            >>> cls.generate_env_vars(wf_attribs={'workflow_id': 22}, action_env={'a': 'DD'}, is_first_action=True, is_last_action=False)
+            >>> AWS_Batch_Dag.generate_env_vars(wf_attribs={'workflow_id': 22}, action_env={'a': 'DD'}, is_first_action=True, is_last_action=False)
             [{'name': 'workflow_id', 'value': '22'}, {'name': 'a', 'value': 'DD'}, {'name': 'is_first_action', 'value': 'True'}, {'name': 'is_last_action', 'value': 'False'}]
         """
         env = [{'name': name, 'value': str(value)} for name, value in wf_attribs.iteritems()]
@@ -204,13 +220,13 @@ class AWS_Batch_Dag(object):
             and reduce the need to query the database.  This is effectively a mapping between job-id to action-id
             and we also know the workflow_instance_id (that needs to be updated)
 
-            >>> cls.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['sns_arn']
+            >>> AWS_Batch_Dag.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['sns_arn']
             'arn'
 
-            >>> cls.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['datastore_id']
+            >>> AWS_Batch_Dag.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['datastore_id']
             1
 
-            >>> cls.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['retries_on_failures']
+            >>> AWS_Batch_Dag.create_workflow_attributes_dict({'workflow_id': 456, 'workflow_instance_id': 334, 'datastore_id': 1}, 3, 'arn')['retries_on_failures']
             3
 
         :param wf_attributes: The workflow attributes that all job share (worfklow id, instance_id, datastore...)
@@ -232,7 +248,15 @@ class AWS_Batch_Dag(object):
 
 
     @staticmethod
-    def create_action_env_vars(action_id, on_failure, step_id, workflow_instance_id, idx, s3_io_bucket, s3_io_prefix):
+    def create_action_env_vars(action_id,
+                               on_failure,
+                               step_id,
+                               workflow_instance_id,
+                               idx,
+                               s3_io_bucket,
+                               s3_io_prefix,
+                               parallelization_idx=None,
+                               parallelization_parents=None):
         """ This info is unique to each action (the template action id it is associated with, the action_id, ...).
             An action will self regulate itself, thus it needs to know if to continue on failure and number of retries (a workflow attribute, not an action).
         :param action_id: The id of the action we will execute in the batch job.
@@ -240,18 +264,20 @@ class AWS_Batch_Dag(object):
         :param step_id: The template action id this action is associated with (info purposes only)
         :param workflow_instance_id: to identify this job we set the workflow instance id as an env param.
         :param idx: the idx is used to set input/outputs to each action. (only relevant to 1-1 actions)
+        :param parallelization_idx: the idx is used to set input/outputs to each action. (only relevant to 1-1 actions)
+        :param parallelization_parents: the idx is used to set input/outputs to each action. (only relevant to 1-1 actions)
         :return: a dictionary of template_action_id, whether the action continue on failure, the action to run (id) and io for batch job.
 
-        >>> cls.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['current_step_id']
+        >>> AWS_Batch_Dag.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['current_step_id']
         'ABC123'
 
-        >>> cls.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['is_continue_on_failure']
+        >>> AWS_Batch_Dag.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['is_continue_on_failure']
         True
 
-        >>> cls.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['input_key']
+        >>> AWS_Batch_Dag.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['input_key']
         '111AAA_0.dat'
 
-        >>> cls.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['output_key']
+        >>> AWS_Batch_Dag.create_action_env_vars('XYZ987', 'CONTINUE', 'ABC123', '111AAA', 0, "bucket", "path")['output_key']
         '111AAA_1.dat'
         """
         action_env = {
@@ -260,7 +286,9 @@ class AWS_Batch_Dag(object):
             "ACTION_ID": action_id,
             "input_key": "{0}_{1}.dat".format(workflow_instance_id, idx),
             "output_key": "{0}_{1}.dat".format(workflow_instance_id, idx+1),  # This is the input to action with idx+1
-            "s3_path": "{0}/{1}".format(s3_io_bucket, s3_io_prefix)
+            "s3_path": "{0}/{1}".format(s3_io_bucket, s3_io_prefix),
+            "parallelization_idx": parallelization_idx,
+            "parallelization_parents": parallelization_parents
         }
 
         return action_env
@@ -306,14 +334,14 @@ if __name__ == "__main__":
             self.__dict__.update({'order_idx': 1, 'uparallelization_parents': []})
 
         def str(self):
-            print self.order_idx
+            print (self.order_idx)
 
     class FakeAction(object):
         def __init__(self):
             self.__dict__.update({'data': FakeData()})
 
         def str(self):
-            print self.data
+            print (self.data)
 
     doctest.testmod(extraglobs={'cls': AWS_Batch_Dag(fake_config, None, None, None, None),
                                 'FakeAction': FakeAction,

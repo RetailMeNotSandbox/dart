@@ -213,6 +213,7 @@ def update_action(action, updated_action):
     sanitized_action.data.progress = updated_action.data.progress
     sanitized_action.data.order_idx = updated_action.data.order_idx
     sanitized_action.data.parallelization_parents = updated_action.data.parallelization_parents
+    sanitized_action.data.parallelization_idx = updated_action.data.parallelization_idx
     sanitized_action.data.on_failure = updated_action.data.on_failure
     sanitized_action.data.on_failure_email = updated_action.data.on_failure_email
     sanitized_action.data.on_success_email = updated_action.data.on_success_email
