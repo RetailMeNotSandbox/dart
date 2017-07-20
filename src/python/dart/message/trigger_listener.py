@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 @injectable
 class TriggerListener(object):
     def __init__(self, trigger_broker, trigger_proxy, trigger_service, action_service, datastore_service,
-                 workflow_service, emailer, subscription_element_service):
+                 workflow_service, emailer, subscription_element_service, subscription_service):
         self._trigger_broker = trigger_broker
         self._trigger_proxy = trigger_proxy
         self._trigger_service = trigger_service
@@ -26,6 +26,7 @@ class TriggerListener(object):
         self._workflow_service = workflow_service
         self._emailer = emailer
         self._subscription_element_service = subscription_element_service
+        self._subscription_service = subscription_service
         self._handlers = {
             TriggerCall.PROCESS_TRIGGER: self._handle_process_trigger,
             TriggerCall.TRY_NEXT_ACTION: self._handle_try_next_action,
@@ -177,7 +178,9 @@ class TriggerListener(object):
             return
 
         if trigger.data.trigger_type_name == subscription_batch_trigger.name:
-            self._trigger_proxy.trigger_subscription_evaluation(trigger.id)
+            sub = self._subscription_service.get_subscription(trigger.data.args['subscription_id'], raise_when_missing=False)
+            if sub and not sub.data.nudge_id:
+                self._trigger_proxy.trigger_subscription_evaluation(trigger.id)
 
         if trigger.data.trigger_type_name == super_trigger.name:
             for ctid in trigger.data.args['completed_trigger_ids']:
