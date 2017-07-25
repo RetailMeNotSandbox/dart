@@ -46,7 +46,7 @@ class GraphEntityService(object):
             self.redis_expiration_ttl = int(dart_config['redis']['expire_seconds'])
 
             try:
-                self.redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=0)
+                self.redis_client = None #redis.StrictRedis(host=redis_host, port=redis_port, db=0)
             except Exception as err:
                 _logger.error("Redis: failed to create a redis client. err={0}".format(err))
 
@@ -394,10 +394,14 @@ class GraphEntityService(object):
     @staticmethod
     def _remove_edge(edges, visited_edges, s_type, s_id, d_type, d_id):
         edge_id = '%s-%s %s-%s' % (s_type, s_id, d_type, d_id)
+        found_item = False
         if edge_id in visited_edges:
             for idx, e in enumerate(edges):
                 if (e.source_type == s_type) and (e.source_id == s_id) and (e.destination_type == d_type) and (e.destination_id == d_id):
+                    found_item = True
                     break
+
+        if found_item:
             del edges[idx]
 
     @staticmethod
