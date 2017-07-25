@@ -336,6 +336,9 @@ class GraphEntityService(object):
                 action_parents_str = act[2]
                 if action_parents_str:  # if has parents (as order_idx values
                     template_action_id = act[0]
+
+                    matching_instance_workflow_id = None
+                    matching_instance_workflow_id = None
                     if template_action_id_2_instance_action.get(template_action_id):
                         matching_instance_action_id = template_action_id_2_instance_action.get(template_action_id)[1]
                         matching_instance_workflow_id = template_action_id_2_instance_action.get(template_action_id)[2]
@@ -348,13 +351,15 @@ class GraphEntityService(object):
                             # In order to make the graph less cluttered we keep the workflow node pointing to
                             # the first template action only.
                             self._remove_edge(edges, visited_edges, "workflow", wf_id, "action", template_action_id)
-                            self._remove_edge(edges, visited_edges, "workflow_instance", matching_instance_workflow_id, "action", matching_instance_action_id)
+                            if matching_instance_workflow_id:
+                                self._remove_edge(edges, visited_edges, "workflow_instance", matching_instance_workflow_id, "action", matching_instance_action_id)
 
                             parent_template_action_id = parent[0]
                             self._add_edge(edges, visited_edges, 'action', parent_template_action_id, 'action', template_action_id)
                             if template_action_id_2_instance_action.get(parent_template_action_id):
                                 parent_instance_action_id = template_action_id_2_instance_action.get(parent_template_action_id)[1]
-                                self._add_edge(edges, visited_edges, 'action', parent_instance_action_id, 'action', matching_instance_action_id)
+                                if matching_instance_action_id:
+                                    self._add_edge(edges, visited_edges, 'action', parent_instance_action_id, 'action', matching_instance_action_id)
 
     @staticmethod
     def _get_datastore_one_offs(nodes):
