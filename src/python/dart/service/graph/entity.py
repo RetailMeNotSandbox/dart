@@ -23,6 +23,9 @@ from dart.service.graph.sql_misc import ENTITY_IDENTIFIER_SQL, DATASTORE_ONE_OFF
 from dart.service.graph.sub_graph import get_static_subgraphs_by_engine_name, \
     get_static_subgraphs_by_engine_name_all_engines_related_none
 from dart.util.rand import random_id
+from operator import is_not
+from functools import partial
+import ast
 
 _logger = logging.getLogger(__name__)
 
@@ -281,7 +284,77 @@ class GraphEntityService(object):
                 self._add_node(nodes, visited_nodes, 'action', a_id, a_name, a_state, a_sub_type)
                 self._add_edge(edges, visited_edges, 'datastore', d_id, 'action', a_id)
 
+        self.add_MM_nodes(nodes=nodes, edges=edges, visited_edges=visited_edges)
         return Graph(nodes, edges)
+
+    def add_MM_nodes(self, nodes, edges, visited_edges):
+        ''' MasterMind migrated workflows will want to show parent-child relationships between action nodes.
+            We will show parent-child relationships only if the parallization parents exist (new workflows).
+        '''
+        def str_2_list(list_str):
+            ''' '[1,2,3]' => [1,2,3] '''
+            try:
+                x = ast.literal_eval(list_str)
+                return x
+            except Exception as err:
+                _logger.warning(err)
+                return []
+
+        def to_int(str):
+            ''' "2.0" => 2 '''
+            return int(float(str))
+
+        # The template actions have the original order_idx (the instance action increment them constantly).
+        # Instance action have mappings to their template actions via data->>'workflow_action_id'.
+        # We match each template action with its instance action, and each parent template action with its matching
+        # parent instance action.  For each such opair we add an edge.
+        # In order de-clutter the graph we also remove edges from workflow and workflow-action to nodes
+        # (except the first ones)
+
+        # create template_action_id_2_instance_action which helps get an instance action by its template action id.
+        WFI_IDS_SQL = "select  data->>'workflow_action_id', id, data->>'workflow_instance_id', data->>'workflow_id' from action where data->>'state'::TEXT != 'TEMPLATE' and data->>'workflow_instance_id' in ({0})"
+        workflow_instance_ids = list(filter(partial(is_not, None),[n.entity_id if n.entity_type=='workflow_instance' else None for n in nodes]))
+        wfi_ids = ','.join("'{0}'".format(w) for w in workflow_instance_ids)
+        template_action_id_2_instance_action = {}
+        if wfi_ids:
+            for instance_action in db.session.execute(WFI_IDS_SQL.format(wfi_ids)):
+                template_action_id_2_instance_action[instance_action[0]] = instance_action
+
+        # For each workflow, find its actions and if action has parents than add edges from parent to child.
+        WF_IDS_SQL = "SELECT id, data->>'order_idx' as idx, data->>'parallelization_parents' AS parents FROM action WHERE data->>'workflow_id'='{0}' and data->>'state'::TEXT = 'TEMPLATE'"
+        workflow_ids = list(filter(partial(is_not, None),[n.entity_id if n.entity_type=='workflow' else None for n in nodes]))
+        order_idx_2_template_action = {}
+        template_action_id_2_order_idx = {}
+        for wf_id in workflow_ids:
+            # populate the two dictionaries above for the template actions only
+            for action_record in db.session.execute(WF_IDS_SQL.format(wf_id)):
+                order_idx_2_template_action[to_int(action_record[1])] = action_record
+                template_action_id_2_order_idx[action_record[0]] = to_int(action_record[1])
+
+            # For every template action (which may have an associated instance action) add an edge to parent (if exists)
+            for act in order_idx_2_template_action.values():
+                action_parents_str = act[2]
+                if action_parents_str:  # if has parents (as order_idx values
+                    template_action_id = act[0]
+                    if template_action_id_2_instance_action.get(template_action_id):
+                        matching_instance_action_id = template_action_id_2_instance_action.get(template_action_id)[1]
+                        matching_instance_workflow_id = template_action_id_2_instance_action.get(template_action_id)[2]
+
+                    # At this point we know we have parents for the template actions. We will add edges for the template
+                    # actions and their matching instance actions (and parents) in tandem using mappings above.
+                    for parents_idx in str_2_list(action_parents_str):
+                        parent = order_idx_2_template_action.get(to_int(parents_idx))
+                        if parent:
+                            # In order to make the graph less cluttered we keep the workflow node pointing to
+                            # the first template action only.
+                            self._remove_edge(edges, visited_edges, "workflow", wf_id, "action", template_action_id)
+                            self._remove_edge(edges, visited_edges, "workflow_instance", matching_instance_workflow_id, "action", matching_instance_action_id)
+
+                            parent_template_action_id = parent[0]
+                            self._add_edge(edges, visited_edges, 'action', parent_template_action_id, 'action', template_action_id)
+                            if template_action_id_2_instance_action.get(parent_template_action_id):
+                                parent_instance_action_id = template_action_id_2_instance_action.get(parent_template_action_id)[1]
+                                self._add_edge(edges, visited_edges, 'action', parent_instance_action_id, 'action', matching_instance_action_id)
 
     @staticmethod
     def _get_datastore_one_offs(nodes):
@@ -312,6 +385,15 @@ class GraphEntityService(object):
         if edge_id not in visited_edges:
             visited_edges.add(edge_id)
             edges.append(Edge(s_type, s_id, d_type, d_id))
+
+    @staticmethod
+    def _remove_edge(edges, visited_edges, s_type, s_id, d_type, d_id):
+        edge_id = '%s-%s %s-%s' % (s_type, s_id, d_type, d_id)
+        if edge_id in visited_edges:
+            for idx, e in enumerate(edges):
+                if (e.source_type == s_type) and (e.source_id == s_id) and (e.destination_type == d_type) and (e.destination_id == d_id):
+                    break
+            del edges[idx]
 
     @staticmethod
     def _get_entity_type(entity):
