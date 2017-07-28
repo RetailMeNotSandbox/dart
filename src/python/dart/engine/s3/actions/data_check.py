@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import re
 
@@ -23,6 +23,7 @@ def data_check(s3_engine, datastore, action):
     s3_path_prefix = substitute_date_tokens(args['s3_path_prefix'], now, offset)
     bucket_name = get_bucket_name(s3_path_prefix)
     prefix = get_key_name(s3_path_prefix)
+    last_modified = args.get('s3_file_last_modified')
 
     s3_paginator = boto3.client('s3').get_paginator('list_objects')
     for page in s3_paginator.paginate(Bucket=bucket_name, Prefix=prefix):
@@ -32,6 +33,8 @@ def data_check(s3_engine, datastore, action):
             if s3_path_regex and not re.match(substitute_date_tokens(s3_path_regex, now, offset), path):
                 continue
             if args.get('min_file_size_in_bytes') and element['Size'] < args['min_file_size_in_bytes']:
+                continue
+            if last_modified and element['LastModified'] < now - timedelta(seconds=offset):
                 continue
             return
 
