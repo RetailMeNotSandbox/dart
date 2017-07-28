@@ -53,6 +53,11 @@ class S3ActionTypes(object):
                     'default': 0,
                     'description': 'If specified, the date used in s3 path substitutions will be adjusted by this amount',
                 },
+                's3_file_last_modified': {
+                    'type': ['boolean', 'null'],
+                    'default': False,
+                    'description': 'If specified, the data check factors last modified date into the data check',
+                },
             },
             'additionalProperties': False,
             'required': ['s3_path_prefix'],
