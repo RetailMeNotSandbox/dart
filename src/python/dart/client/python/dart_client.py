@@ -17,11 +17,11 @@ from dart.model.exception import DartRequestException
 from dart.model.graph import Graph, SubGraphDefinition
 from dart.model.query import Filter
 from dart.model.query import Operator
-from dart.model.subscription import Subscription, SubscriptionElementStats, SubscriptionState, SubscriptionElement, \
-    SubscriptionElementState
+from dart.model.subscription import Subscription, SubscriptionElementStats, SubscriptionState, SubscriptionElement
 from dart.model.trigger import Trigger, TriggerType
 from dart.model.workflow import Workflow, WorkflowInstance, WorkflowInstanceState
 from dart.config.config import configuration
+from dart.util.nudge_requests import make_nudge_request
 
 config_path = os.environ['DART_CONFIG']
 config = configuration(config_path)
@@ -317,7 +317,7 @@ class Dart(object):
         :returns True if the subscription has activated
         """
         for _ in xrange(retries+1):
-            response = requests.post(
+            response = make_nudge_request(
                 url='{}/GetSubscription'.format(config.get('nudge').get('host_url')),
                 json={'SubscriptionId': nudge_sub_id},
             )
@@ -340,8 +340,8 @@ class Dart(object):
         json_body = {
             'SubscriptionId': nudge_subscription_id
         }
-        return requests.post(url='%s/CreateBatch' % host_url,
-                             json=json_body).json()
+        return make_nudge_request(url='%s/CreateBatch' % host_url,
+                                  json=json_body).json()
 
     @staticmethod
     def get_nudge_batch_elements(nudge_subscription_id, batch_id):
@@ -352,7 +352,7 @@ class Dart(object):
         offset = 0
         host_url = config.get('nudge').get('host_url')
         while True:
-            response = requests.post(
+            response = make_nudge_request(
                 url='%s/GetBatchElements' % host_url,
                 json={
                     'SubscriptionId': nudge_subscription_id,
@@ -361,7 +361,6 @@ class Dart(object):
                     'Offset': offset
                 },
             )
-
             elements = response.json()['Elements']
             if len(elements) == 0:
                 break
@@ -381,8 +380,8 @@ class Dart(object):
         }
         if prev_batch_id:
             json_body['PreviousBatchId'] = prev_batch_id
-        return requests.post(url='%s/GetSubscriptionBatches' % host_url,
-                             json=json_body).json()['Batches']
+        return make_nudge_request(url='%s/GetSubscriptionBatches' % host_url,
+                                  json=json_body).json()['Batches']
 
     @staticmethod
     def ack_nudge_elements(nudge_subscription_id, batch_id):
@@ -394,8 +393,8 @@ class Dart(object):
             'SubscriptionId': nudge_subscription_id,
             'BatchId': batch_id,
         }
-        return requests.post(url='%s/Consume' % host_url,
-                             json=json_body).json()
+        return make_nudge_request(url='%s/Consume' % host_url,
+                                  json=json_body).json()
 
     def get_subscription_elements(self, action_id):
         """ :type action_id: str
