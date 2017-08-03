@@ -22,10 +22,10 @@ class Emailer(object):
         self._dart_host = _get_dart_host(dart_config)
 
     def get_entity_link(self, entity, action_id):
-        return 'http://%s/entities/%s?f=["id=%s"]' % (self._dart_host, entity, action_id)
+        return 'https://%s/entities/%s?f=["id=%s"]' % (self._dart_host, entity, action_id)
 
     def get_workflow_manager_link(self, workflow_id):
-        return 'http://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
+        return 'https://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
 
     # we experience occasional gmail API issues, so we will retry a few times
     @retry(wait_fixed=10000, stop_max_attempt_number=12)
@@ -60,7 +60,7 @@ class Emailer(object):
         subject = '{action_status} Dart: action (action_id={action_id}, action_type_name={action_type_name})'
         message = """
                      action (action_id={action_id}, action_type_name={action_type_name}) {action_status}
-                     for datastore (datastore_id=%s, datastore_name=%s)
+                     for datastore (datastore_id={datastore_id}, datastore_name={datastore_name})
                      {entity_link}
 
                      action_err_msg={action_err_msg}
