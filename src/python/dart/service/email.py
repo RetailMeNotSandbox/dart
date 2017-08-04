@@ -1,4 +1,5 @@
 import logging
+import urllib
 from textwrap import dedent
 from mailer import Mailer, Message
 from retrying import retry
@@ -22,7 +23,12 @@ class Emailer(object):
         self._dart_host = _get_dart_host(dart_config)
 
     def get_entity_link(self, entity, action_id):
-        return 'https://%s/entities/%s?f=["id=%s"]' % (self._dart_host, entity, action_id)
+        origin_param = '["id=%s"]' %(action_id)
+        converted_param = urllib.quote(origin_param, safe='')
+        path = 'https://%s/entities/%s?f=' % (self._dart_host, entity)
+        # return 'https://%s/entities/%s?f=["id=%s"]' % (self._dart_host, entity, action_id)
+        return path + converted_param
+
 
     def get_workflow_manager_link(self, workflow_id):
         return 'https://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
