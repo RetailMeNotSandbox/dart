@@ -25,7 +25,7 @@ class Emailer(object):
     def get_entity_link(self, entity, action_id):
         origin_param = '["id=%s"]' %(action_id)
         converted_param = urllib.quote(origin_param, safe='')
-        path = 'https://%s/entities/%s?f=' % (self._dart_host, entity)
+        path = 'https://%s/#/entities/%s?f=' % (self._dart_host, entity)
         # return 'https://%s/entities/%s?f=["id=%s"]' % (self._dart_host, entity, action_id)
         return path + converted_param
 
