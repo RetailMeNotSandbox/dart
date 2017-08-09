@@ -33,6 +33,9 @@ class AWS_Batch_Dag(object):
         self.sns_arn = config_metadata(['aws_batch', 'sns_arn'])
 
         self.client = client
+        boto_retries = config_metadata(['aws_batch', 'boto_retries'])
+        self.increase_batch_client_retry(client, boto_retries)
+
         self.s3_client = s3_client  # TODO: for input/output
         _logger.info("AWS_Batch: using job_definition_suffix={0} and job_queue={1}".
                      format(self.job_definition_suffix, self.job_queue))
@@ -134,6 +137,22 @@ class AWS_Batch_Dag(object):
                                           })
         _logger.info("AWS_Batch: response={0}".format(response))
         return response['jobId']
+
+
+    @staticmethod
+    def increase_batch_client_retry(batch_client, num_retries=8):
+        ''' 8 was chosen by manual testing of how long the backoff is on retires.
+            8 - takes 45-60 seconds (10 - close to 4 or 5 minutes)
+            >>> AWS_Batch_Dag.increase_batch_client_retry(None, 4)
+        '''
+        new_boto_batch_retries = num_retries
+        if not num_retries:
+            new_boto_batch_retries = 8
+
+        try:
+            batch_client.meta.events._unique_id_handlers['retry-config-batch']['handler']._checker.__dict__['_max_attempts'] = new_boto_batch_retries
+        except Exception as err:
+            _logger.info("AWS_Batch: Failed to increase batch client retries to {0}".format(num_retries))
 
     @staticmethod
     def get_latest_active_job_definition(job_def_name, job_definition_suffix, describe_job_definitions_func):
