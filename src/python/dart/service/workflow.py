@@ -157,14 +157,35 @@ class WorkflowService(object):
             query = self._filter_service.apply_filter(f, query, WorkflowInstanceDao, [workflow_instance_schema()])
         return query
 
-    def action_checkout(self, action):
-        action = self._action_service.update_action_state(action, ActionState.RUNNING, action.data.error_message)
-        if action.data.workflow_instance_id and action.data.first_in_workflow:
-            wf_instance = self.get_workflow_instance(action.data.workflow_instance_id)
-            self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.RUNNING)
-            wf = self.get_workflow(action.data.workflow_id)
-            if wf.data.on_started_email:
-                self._emailer.send_workflow_started_email(wf, wf_instance)
+    def action_checkout(self, input_action):
+        action = None
+        wf_instance = None
+        step = "Starting action checkout"
+        try:
+            action = self._action_service.update_action_state(input_action, ActionState.RUNNING, input_action.data.error_message)
+            step = "Updated action state to running"
+
+            if action.data.workflow_instance_id and action.data.first_in_workflow:
+                wf_instance = self.get_workflow_instance(action.data.workflow_instance_id)
+                step = "Got workflow instance {0} since it is the first action in workflow".format(action.data.workflow_instance_id)
+
+                self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.RUNNING)
+                step = "Updated workflow_instance {0} state to running".format(action.data.workflow_instance_id)
+
+                wf = self.get_workflow(action.data.workflow_id)
+                step = "Got Workflow {0}".format(action.data.workflow_id)
+                if wf.data.on_started_email:
+                    self._emailer.send_workflow_started_email(wf, wf_instance)
+                    step = "Sent emails for workflow instance {0}".format(action.data.workflow_instance_id)
+
+        except Exception as err:
+            _logger.error("action checkout Failed, step={0}, action={1}, err={2}".format(step, input_action, err))
+            if input_action and input_action.data:
+                self._action_service.update_action_state(input_action, ActionState.PENDING, input_action.data.error_message)
+            if wf_instance:
+                self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.QUEUED)
+            raise Exception("Error:{0}, status_step={1}".format(err.message, step))
+
         return action
 
     def action_checkin(self, action, action_state, consume_subscription_state=None):

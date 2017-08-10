@@ -86,7 +86,12 @@ def action_checkout(action):
     if len(results) == 3:
         return results
 
-    action = workflow_service().action_checkout(action)
+    action = None
+    try:
+        action = workflow_service().action_checkout(action)
+    except Exception as err:
+        return {'result': str(err)}, 529
+
     engine, datastore = results
     return {'results': ActionContext(engine, action, datastore).to_dict()}
 
