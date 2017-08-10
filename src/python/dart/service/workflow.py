@@ -14,6 +14,7 @@ from dart.service.patcher import patch_difference, retry_stale_data
 from dart.util.rand import random_id
 from dart.util.aws_batch import AWS_Batch_Dag
 from dart.util.config_metadata import get_key
+from dart.model.exception import DartRequestException
 import boto3
 
 _logger = logging.getLogger(__name__)
@@ -184,7 +185,7 @@ class WorkflowService(object):
                 self._action_service.update_action_state(input_action, ActionState.PENDING, input_action.data.error_message)
             if wf_instance:
                 self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.QUEUED)
-            raise Exception("Error:{0}, status_step={1}".format(err.message, step))
+            raise DartRequestException(response=None, message="Error:{0}, status_step={1}".format(err.message, step))
 
         return action
 

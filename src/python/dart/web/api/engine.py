@@ -16,6 +16,7 @@ from dart.service.filter import FilterService
 from dart.service.trigger import TriggerService
 from dart.service.workflow import WorkflowService
 from dart.web.api.entity_lookup import fetch_model, accounting_track
+from dart.model.exception import DartRequestException
 
 api_engine_bp = Blueprint('api_engine', __name__)
 
@@ -89,8 +90,13 @@ def action_checkout(action):
     action = None
     try:
         action = workflow_service().action_checkout(action)
+    except DartRequestException as e:
+        raise
     except Exception as err:
         return {'result': str(err)}, 529
+    else:
+        return {'result': "Failed action checkout"}, 530
+
 
     engine, datastore = results
     return {'results': ActionContext(engine, action, datastore).to_dict()}
