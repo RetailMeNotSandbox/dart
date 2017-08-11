@@ -205,13 +205,12 @@ class ScheduledTriggerProcessor(TriggerProcessor):
             response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=100)
             for _target in response['Targets']:
                 if _target['Id'] == trigger.id:
+                    r = client.remove_targets(Rule=_rule['Name'], Ids=[_target['Id']])
+                    self._check_response(r)
+                    _logger.info('Deleted target for trigger (id=%s) from cloudwatch rule (name=%s)' % (_target['Id'], _rule['Name']))
                     if len(response['Targets']) == 1:
                         client.delete_rule(Name=_rule['Name'])
                         _logger.info('Deleted cloudwatch rule (name=%s)' % _rule['Name'])
-                    else:
-                        r = client.remove_targets(Rule=_rule['Name'], Ids=[_target['Id']])
-                        self._check_response(r)
-                        _logger.info('Deleted target for trigger (id=%s) from cloudwatch rule (name=%s)' % (_target['Id'], _rule['Name']))
                     return
 
     @staticmethod
