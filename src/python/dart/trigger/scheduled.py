@@ -201,7 +201,7 @@ class ScheduledTriggerProcessor(TriggerProcessor):
         """
         rule_prefix = self._get_cloudwatch_events_rule_prefix(trigger.data.args['cron_pattern'])
         rules = client.list_rules(NamePrefix=rule_prefix)['Rules']
-        for _rule in rules['Rules']:
+        for _rule in rules:
             response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=100)
             for _target in response['Targets']:
                 if _target['Id'] == trigger.id:
