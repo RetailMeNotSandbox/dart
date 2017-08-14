@@ -380,7 +380,7 @@ class SubscriptionElementService(object):
     def _is_subscription_trigger(workflow_instance_id):
         results = WorkflowInstanceDao.query \
                 .filter(WorkflowInstanceDao.id == workflow_instance_id) \
-                .filter(WorkflowInstanceDao.data['trigger_type'] == 'subscription_batch') \
+                .filter(WorkflowInstanceDao.data['trigger_type'].astext == subscription_batch_trigger.name) \
                 .all()
         return len(results) > 0
 
