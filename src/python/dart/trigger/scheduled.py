@@ -171,7 +171,7 @@ class ScheduledTriggerProcessor(TriggerProcessor):
     def _next_rule_name(self, client, trigger):
         """
         This method determines what the next rule name should be for new triggers e.g. iff there is a certain cron
-        expression that resolves to 'dart-ABCDEF' after hashing and it already has 100 targets, then we create a new
+        expression that resolves to 'dart-ABCDEF' after hashing and it already has 5 targets, then we create a new
         cloudwatch rule with the name 'dart-ABCDEF-1'.
 
         :param client: boto3.session.Session.client
@@ -184,8 +184,8 @@ class ScheduledTriggerProcessor(TriggerProcessor):
             return rule_prefix
 
         for _rule in rules:
-            response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=100)
-            if len(response['Targets']) < 100:
+            response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=5)
+            if len(response['Targets']) < 5:
                 return _rule['Name']
 
         return '%s-%d'% (rule_prefix, len(rules) + 1)
@@ -202,7 +202,7 @@ class ScheduledTriggerProcessor(TriggerProcessor):
         rule_prefix = self._get_cloudwatch_events_rule_prefix(trigger.data.args['cron_pattern'])
         rules = client.list_rules(NamePrefix=rule_prefix)['Rules']
         for _rule in rules:
-            response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=100)
+            response = client.list_targets_by_rule(Rule=_rule['Name'], Limit=5)
             for _target in response['Targets']:
                 if _target['Id'] == trigger.id:
                     r = client.remove_targets(Rule=_rule['Name'], Ids=[_target['Id']])

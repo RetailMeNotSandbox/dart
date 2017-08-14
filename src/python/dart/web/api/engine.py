@@ -87,7 +87,6 @@ def action_checkout(action):
     if len(results) == 3:
         return results
 
-    action = None
     try:
         action = workflow_service().action_checkout(action)
     except DartRequestException as e:
