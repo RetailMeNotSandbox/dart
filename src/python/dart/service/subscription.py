@@ -326,7 +326,7 @@ class SubscriptionElementService(object):
         err_msg = 'unexpected action name: %s' % action.data.action_type_name
         assert action.data.action_type_name == 'consume_subscription', err_msg
 
-        wf_instance_id = action.data.args['workflow_instance_id']
+        wf_instance_id = action.data.workflow_instance_id
         s_id = action.data.args['subscription_id']
 
         if self._is_subscription_trigger(wf_instance_id):
