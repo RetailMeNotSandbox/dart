@@ -93,8 +93,8 @@ def action_checkout(action):
         raise
     except Exception as err:
         return {'result': str(err)}, 529
-    else:
-        return {'result': "Failed action checkout"}, 530
+    # else:
+    #     return {'result': "Failed action checkout"}, 530
 
 
     engine, datastore = results
