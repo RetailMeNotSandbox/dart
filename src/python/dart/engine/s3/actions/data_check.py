@@ -34,7 +34,7 @@ def data_check(s3_engine, datastore, action):
                 continue
             if args.get('min_file_size_in_bytes') and element['Size'] < args['min_file_size_in_bytes']:
                 continue
-            if last_modified and element['LastModified'] < now - timedelta(seconds=offset):
+            if last_modified and element['LastModified'] < now + timedelta(seconds=offset):
                 continue
             return
 

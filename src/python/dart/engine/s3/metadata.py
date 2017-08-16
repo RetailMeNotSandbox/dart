@@ -28,7 +28,7 @@ class S3ActionTypes(object):
             'type': 'object',
             'properties': {
                 's3_path_prefix': {
-                    'type': 'string',
+                    'type': ['string', 'null'],
                     'pattern': '^s3://.+$',
                     'description': 'The s3 path prefix where at least one s3 key/file should exist, e.g. '
                                    's3://bucket/prefix. The following values (with braces) will be substituted with '
