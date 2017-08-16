@@ -60,6 +60,5 @@ class S3ActionTypes(object):
                 },
             },
             'additionalProperties': False,
-            'required': ['s3_path_prefix'],
         },
     )
