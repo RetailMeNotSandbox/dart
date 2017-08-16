@@ -2,7 +2,8 @@ FROM centos
 MAINTAINER aophir@rmn.com
 
 RUN yum install epel-release -y
-RUN yum install -y \
+RUN rpm -ivh https://kojipkgs.fedoraproject.org//packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm && \
+    yum install -y \
     vim-enhanced \
     mlocate \
     git \
