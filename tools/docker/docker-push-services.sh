@@ -13,17 +13,13 @@ OLD_IFS=${IFS}
 IFS=
 CONFIG="$(DART_ROLE=tool dart_conf)"
 DOCKER_IMAGE_FLASK=$(dart_conf_value "${CONFIG}" "$.cloudformation_stacks.web.boto_args.Parameters[@.ParameterKey is 'FlaskWorkerDockerImage'][0].ParameterValue")
-DOCKER_IMAGE_WORKER_ENGINE=$(dart_conf_value "${CONFIG}" "$.cloudformation_stacks.'engine-worker'.boto_args.Parameters[@.ParameterKey is 'EngineWorkerDockerImage'][0].ParameterValue")
 DOCKER_IMAGE_WORKER_TRIGGER=$(dart_conf_value "${CONFIG}" "$.cloudformation_stacks.'trigger-worker'.boto_args.Parameters[@.ParameterKey is 'TriggerWorkerDockerImage'][0].ParameterValue")
-DOCKER_IMAGE_WORKER_SUBSCRIPTION=$(dart_conf_value "${CONFIG}" "$.cloudformation_stacks.'subscription-worker'.boto_args.Parameters[@.ParameterKey is 'SubscriptionWorkerDockerImage'][0].ParameterValue")
 IFS=${OLD_IFS}
 
 $(aws ecr get-login --registry-ids $ECR_ID)
 set -x
 docker push ${DOCKER_IMAGE_FLASK}
-docker push ${DOCKER_IMAGE_WORKER_ENGINE}
 docker push ${DOCKER_IMAGE_WORKER_TRIGGER}
-docker push ${DOCKER_IMAGE_WORKER_SUBSCRIPTION}
 set +x
 
 
