@@ -26,6 +26,7 @@ from dart.web.api.trigger import api_trigger_bp
 from dart.web.api.workflow import api_workflow_bp
 from dart.web.api.subscription import api_subscription_bp
 from dart.web.ui.index import index_bp
+from dart.web.ui2.index import index2_bp
 from flask.ext.login import login_required
 
 from jinja2 import Environment, FileSystemLoader
@@ -103,6 +104,7 @@ app.register_blueprint(api_event_bp, url_prefix=api_version_prefix)
 app.register_blueprint(api_schema_bp, url_prefix=api_version_prefix)
 app.register_blueprint(api_graph_bp, url_prefix=api_version_prefix)
 app.register_blueprint(index_bp)
+# app.register_blueprint(index2_bp)
 
 
 @app.route('/apidocs')

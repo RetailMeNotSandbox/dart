@@ -1,0 +1,7 @@
+.item {
+    height: 80px;
+    width: 80px;
+    border: 1px solid gray;
+    position: absolute;
+    display: block;
+}
