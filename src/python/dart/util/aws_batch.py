@@ -32,6 +32,10 @@ class AWS_Batch_Dag(object):
         # SNS to notify workflow completion and action completion
         self.sns_arn = config_metadata(['aws_batch', 'sns_arn'])
 
+        # to discern between priority workflows and regular workflows
+        self.priority_job_queue = config_metadata(['aws_batch', 'priority_job_queue'])
+        self.priority_workflows = config_metadata(['aws_batch', 'priority_workflows'])
+
         self.client = client
         boto_retries = config_metadata(['aws_batch', 'boto_retries'])
         self.increase_batch_client_retry(client, boto_retries)
@@ -117,12 +121,18 @@ class AWS_Batch_Dag(object):
         job_name = self.generate_job_name(wf_attribs['workflow_id'], oaction.data.order_idx, oaction.data.name, self.job_definition_suffix)
         _logger.info("AWS_Batch: job-name={0}, dependsOn={1}".format(job_name, dependency))
 
+        # Switch to a priority queue if the workflow is listed as a priority workflow in the config file.
+        queue_name = self.job_queue
+        if wf_attribs['workflow_id'] in self.priority_workflows:
+            _logger.info("AWS_Batch: Switching to priority queue {0} for workflow {1}".format(queue_name, wf_attribs['workflow_id']))
+            queue_name = self.priority_job_queue
+
         # submit_job is sensitive to None value in env variables so we wrap them with str(..)
         input_env = json.dumps(self.generate_env_vars(wf_attribs, action_env, idx == 0, idx == last_action_index))
         response = self.client.submit_job(jobName=job_name,
                                           # SNS to notify workflow completion and action completion
                                           jobDefinition=self.get_latest_active_job_definition(oaction.data.engine_name, self.job_definition_suffix, self.client.describe_job_definitions),
-                                          jobQueue=self.job_queue,
+                                          jobQueue=queue_name,
                                           dependsOn=dependency,
                                           containerOverrides={
                                               'environment': [
