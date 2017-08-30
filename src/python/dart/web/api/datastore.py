@@ -25,7 +25,6 @@ def post_datastore():
 @api_datastore_bp.route('/datastore/<datastore>', methods=['GET'])
 @login_required
 @fetch_model
-@required_roles(['Edit'])
 @jsonapi
 def get_datastore(datastore):
     return {'results': datastore.to_dict()}

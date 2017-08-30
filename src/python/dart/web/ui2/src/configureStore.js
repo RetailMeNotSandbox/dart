@@ -1,10 +1,10 @@
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
 import promise from 'redux-promise';
 import logger from 'redux-logger';
 import thunk from 'redux-thunk';
-import { routerMiddleware } from 'react-router-redux'
+import { routerMiddleware, routerReducer } from 'react-router-redux'
 
-import { reducer } from 'api/';
+import reducers from 'reducers/';
 
 
 const configureStore = (history) => {
@@ -18,7 +18,13 @@ const configureStore = (history) => {
       middlewares.push(logger);
   }
 
-  return createStore(reducer, applyMiddleware(...middlewares));
+  return createStore(
+      combineReducers({
+          ...reducers,
+          routerReducer
+      }),
+      applyMiddleware(...middlewares)
+  );
 };
 
 

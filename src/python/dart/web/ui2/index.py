@@ -10,7 +10,6 @@ index2_bp = Blueprint('index2', __name__, static_folder='ui2/build')
 @index2_bp.route('/2/<path:path>')
 @login_required
 def serve(path):
-    print('osnetuhoentuh', path)
     if path == "":
         return send_from_directory('ui2/build', 'index.html')
     else:
