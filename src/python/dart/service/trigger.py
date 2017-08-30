@@ -21,8 +21,8 @@ from dart.util.rand import random_id
 class TriggerService(object):
     def __init__(self, action_service, datastore_service, workflow_service, manual_trigger_processor,
                  subscription_batch_trigger_processor, workflow_completion_trigger_processor, event_trigger_processor,
-                 scheduled_trigger_processor, super_trigger_processor, retry_trigger_processor, filter_service,
-                 subscription_service, dart_config):
+                 scheduled_trigger_processor, super_trigger_processor, retry_trigger_processor,
+                 zombie_check_trigger_processor, filter_service, subscription_service, dart_config):
         self._action_service = action_service
         self._datastore_service = datastore_service
         self._workflow_service = workflow_service
@@ -33,6 +33,7 @@ class TriggerService(object):
         self._scheduled_trigger_processor = scheduled_trigger_processor
         self._super_trigger_processor = super_trigger_processor
         self._retry_trigger_processor = retry_trigger_processor
+        self._zombie_check_trigger_processor = zombie_check_trigger_processor
         self._filter_service = filter_service
         self._subscription_service = subscription_service
         self._nudge_config = dart_config['nudge']
@@ -45,6 +46,7 @@ class TriggerService(object):
             scheduled_trigger_processor.trigger_type().name: scheduled_trigger_processor,
             super_trigger_processor.trigger_type().name: super_trigger_processor,
             retry_trigger_processor.trigger_type().name: retry_trigger_processor,
+            zombie_check_trigger_processor.trigger_type().name: zombie_check_trigger_processor
         }
 
         params_schemas = []
@@ -217,6 +219,9 @@ class TriggerService(object):
         trigger_dao = TriggerDao.query.get(trigger_id)
         db.session.delete(trigger_dao)
         db.session.commit()
+
+    def check_zombie_workflows(self, workflow_json):
+        self._zombie_check_trigger_processor.send_evaluation_message(workflow_json)
 
     def trigger_workflow_async(self, workflow_json):
         self._manual_trigger_processor.send_evaluation_message(workflow_json)

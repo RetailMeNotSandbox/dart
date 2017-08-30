@@ -162,12 +162,17 @@ def trigger_workflow(workflow):
     if wf.data.state != WorkflowState.ACTIVE:
         return {'results': 'ERROR', 'error_message': 'This workflow is not ACTIVE'}, 400, None
 
-    states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
-    if workflow_service().find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
-        return {'results': 'ERROR', 'error_message': 'Max concurrency reached: %s' % wf.data.concurrency}, 400, None
-
     wf_uuid = uuid.uuid4().hex # to avoid uuid serialization issues
     current_user_id = current_user.email if hasattr(current_user, 'email') else 'anonymous'
+
+    states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
+    if workflow_service().find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
+        _logger.info("Checking for Batch 'stuck' workflows, workflow_id={workflow_id} for user={user_id} with uuid={wf_uuid}".
+                     format(workflow_id=workflow.id, user_id=current_user_id, wf_uuid=wf_uuid))
+        trigger_service().check_zombie_workflows({'workflow_id': workflow.id,
+                                                  'log_info': {'user_id': current_user_id, 'wf_uuid': wf_uuid}})
+        return {'results': 'ERROR', 'error_message': 'Max concurrency reached: %s' % wf.data.concurrency}, 400, None
+
     _logger.info("Launching Workflow {workflow_id} for user={user_id} with uuid={wf_uuid}".
                 format(workflow_id=workflow.id, user_id=current_user_id, wf_uuid=wf_uuid))
 
