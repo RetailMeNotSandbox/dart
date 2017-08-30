@@ -109,8 +109,8 @@ class WorkflowService(object):
             raise Exception('workflow_instance_id with id=%s not found' % workflow_instance_id)
         return workflow_instance_dao.to_model() if workflow_instance_dao else None
 
-    def find_workflow_instances(self, workflow_id=None, limit=None, offset=None):
-        return [i.to_model() for i in self.find_workflow_instances_query(workflow_id, None, limit, offset).all()]
+    def find_workflow_instances(self, workflow_id=None, limit=None, offset=None, states=None):
+        return [i.to_model() for i in self.find_workflow_instances_query(workflow_id, states=states, limit=limit, offset=offset).all()]
 
     def find_workflow_instances_count(self, workflow_id, states=None):
         return self.find_workflow_instances_query(workflow_id, states).count()

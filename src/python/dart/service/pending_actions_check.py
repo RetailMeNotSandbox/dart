@@ -26,8 +26,7 @@ class PendingActionsCheck(object):
 
         # get all workflow_instances of current workflow:
         NOT_COMPLETE_STATES = ['QUEUED', 'RUNNING']
-        all_wf_instances = workflow_service.find_workflow_instances(workflow_id)
-        current_wf_instances = [wf for wf in all_wf_instances if wf.data.state in NOT_COMPLETE_STATES]
+        current_wf_instances = workflow_service.find_workflow_instances(workflow_id, NOT_COMPLETE_STATES)
         _logger.info('Zombie Check: Found workflow instance ids (workflow_id={0}) instances = {1}'.format(workflow_id, current_wf_instances))
 
         return current_wf_instances
@@ -50,7 +49,7 @@ class PendingActionsCheck(object):
         return incomplete_actions, jobs_2_actions, action_2_wf_instance
 
     def handle_done_batch_jobs_with_not_complete_wf_instances(self, batch_jobs, jobs_2_actions, action_2_wf_instance, workflow_service):
-        for job in batch_jobs.get('jobs'):
+        for job in batch_jobs.get('jobs', []):
             # jobs fail + action not-failed => fail workflow instance and action
             action = jobs_2_actions[job.get('jobId')]
             if action:
