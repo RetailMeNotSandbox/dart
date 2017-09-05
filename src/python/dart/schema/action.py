@@ -23,7 +23,7 @@ def action_schema(supported_action_type_params_schema):
             'on_failure': {
                 'type': 'string',
                 'enum': OnFailure.all(),
-                'default': OnFailure.DEACTIVATE,
+                'default': OnFailure.HALT,
                 'description': 'applies to the workflow if this is a workflow action template, otherwise the datastore'
             },
             'on_failure_email': email_list_schema(),

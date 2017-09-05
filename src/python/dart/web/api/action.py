@@ -158,7 +158,9 @@ def update_action_state():
                     master_workflow = workflow_service().get_workflow(workflow_id)
 
                     # Failed action with deactivate on_failure should deactivate the current workflow.
-                    if current_action.data.on_failure == ActionOnFailure.DEACTIVATE:
+                    if current_action.data.on_failure == ActionOnFailure.HALT:
+                        _logger.info("AWS_Batch: Action in workflow={0} failed. Halting on failure and remaining in state {2}".format(master_workflow.id, WorkflowState.ACTIVE))
+                    elif current_action.data.on_failure == ActionOnFailure.DEACTIVATE:
                         _logger.info("AWS_Batch: Updating workflow={0} to state {2}".format(master_workflow.id, WorkflowState.INACTIVE))
                         workflow_service().update_workflow_state(master_workflow, WorkflowState.INACTIVE)
                         if master_workflow.data.on_failure == WorkflowOnFailure.DEACTIVATE:
