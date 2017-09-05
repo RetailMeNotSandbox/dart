@@ -23,7 +23,7 @@ _logger = logging.getLogger(__name__)
 @injectable
 class WorkflowService(object):
     def __init__(self, datastore_service, action_service, trigger_proxy, filter_service, subscription_service,
-                 subscription_element_service, emailer):
+                 subscription_element_service, emailer, pending_actions_check):
         self._datastore_service = datastore_service
         self._action_service = action_service
         self._trigger_proxy = trigger_proxy
@@ -31,6 +31,7 @@ class WorkflowService(object):
         self._subscription_service = subscription_service
         self._subscription_element_service = subscription_element_service
         self._emailer = emailer
+        self._pending_actions_check = pending_actions_check
 
     @staticmethod
     def save_workflow(workflow, commit=True, flush=False):
@@ -108,8 +109,8 @@ class WorkflowService(object):
             raise Exception('workflow_instance_id with id=%s not found' % workflow_instance_id)
         return workflow_instance_dao.to_model() if workflow_instance_dao else None
 
-    def find_workflow_instances(self, workflow_id=None, limit=None, offset=None):
-        return [i.to_model() for i in self.find_workflow_instances_query(workflow_id, None, limit, offset).all()]
+    def find_workflow_instances(self, workflow_id=None, limit=None, offset=None, states=None):
+        return [i.to_model() for i in self.find_workflow_instances_query(workflow_id, states=states, limit=limit, offset=offset).all()]
 
     def find_workflow_instances_count(self, workflow_id, states=None):
         return self.find_workflow_instances_query(workflow_id, states).count()
@@ -283,6 +284,10 @@ class WorkflowService(object):
             return
 
         states = [WorkflowInstanceState.QUEUED, WorkflowInstanceState.RUNNING]
+        if self.find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
+            # clears pending workflow instances of current workflow (which can change concurrency count in next check)
+            self._pending_actions_check.find_pending_dart_actions(wf.id, self)
+
         if self.find_workflow_instances_count(wf.id, states) >= wf.data.concurrency:
             _logger.info('workflow (id={wf_id}) has already reached max concurrency of {concurrency}. log-info: {log_info}'.format(wf_id=wf.id, concurrency=wf.data.concurrency, log_info=workflow_msg.get('log_info')))
             return
