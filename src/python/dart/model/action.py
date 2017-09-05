@@ -51,17 +51,18 @@ class ActionState(object):
 
 class OnFailure(object):
     DEACTIVATE = 'DEACTIVATE'
+    HALT = 'HALT'
     CONTINUE = 'CONTINUE'
 
     @staticmethod
     def all():
-        return [OnFailure.DEACTIVATE, OnFailure.CONTINUE]
+        return [OnFailure.DEACTIVATE, OnFailure.HALT, OnFailure.CONTINUE]
 
 
 @dictable
 class ActionData(BaseModel):
     def __init__(self, name, action_type_name, args=None, state=ActionState.HAS_NEVER_RUN, queued_time=None, start_time=None,
-                 end_time=None, progress=None, order_idx=None, error_message=None, on_failure=OnFailure.DEACTIVATE,
+                 end_time=None, progress=None, order_idx=None, error_message=None, on_failure=OnFailure.HALT,
                  on_failure_email=None, on_success_email=None, engine_name=None, datastore_id=None, workflow_id=None,
                  workflow_instance_id=None, workflow_action_id=None, first_in_workflow=False, last_in_workflow=False,
                  ecs_task_arn=None, batch_job_id=None, extra_data=None, tags=None, user_id='anonymous',
