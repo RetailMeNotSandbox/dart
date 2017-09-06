@@ -236,7 +236,7 @@ class WorkflowService(object):
         offset = 0
         while True:
             # Find all workflow instances
-            workflow_instances = self.find_workflow_instances(workflow_id, 20, offset)
+            workflow_instances = self.find_workflow_instances(workflow_id=workflow_id, limit=20, offset=offset)
             if not workflow_instances:
                 break
             # Iterate and delete all actions in each workflow instance
@@ -275,6 +275,7 @@ class WorkflowService(object):
         return patch_difference(WorkflowInstanceDao, source_workflow_instance, workflow_instance, commit_changes)
 
     def run_triggered_workflow(self, workflow_msg, trigger_type, trigger_id=None, retry_num=0):
+        _logger.info('run_triggered_workflow: workflow_msg={0}, trigger_type={1}.'.format(workflow_msg, trigger_type))
         wf = self.get_workflow(workflow_msg.get('workflow_id'), raise_when_missing=False)
         if not wf:
             _logger.info('workflow (id={wf_id}) not found. log-info: {log_info}'.format(wf_id=workflow_msg.workflow_id, log_info=workflow_msg.get('log_info')))

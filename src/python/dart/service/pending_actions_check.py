@@ -24,7 +24,7 @@ class PendingActionsCheck(object):
 
         # get all workflow_instances of current workflow:
         INCOMPLETE_STATES = ['QUEUED', 'RUNNING']
-        queued_or_running_wf_instances = workflow_service.find_workflow_instances(workflow_id, INCOMPLETE_STATES)
+        queued_or_running_wf_instances = workflow_service.find_workflow_instances(workflow_id, states=INCOMPLETE_STATES)
         _logger.info('Zombie Check: Found workflow instance ids (workflow_id={0}) instances = {1}'.format(workflow_id, queued_or_running_wf_instances))
 
         return queued_or_running_wf_instances
@@ -90,13 +90,13 @@ class PendingActionsCheck(object):
                                                       wf_instance_state=WorkflowInstanceState.FAILED,
                                                       workflow_service=workflow_service)
 
-    def handle_actions_with_deleted_batch_jobs(self, all_batch_job_ids, exisitng_job_ids, jobs_2_actions, action_2_wf_instance, workflow_service):
+    def handle_actions_with_deleted_batch_jobs(self, all_batch_job_ids, existing_job_ids, jobs_2_actions, action_2_wf_instance, workflow_service):
         ''' Find actions whose batch_job info is deleted from Batch history (24 hours retention for jobs in SUCCEEDED/FAILED state) '''
         def diff(first, second):
             second = set(second)
             return [item for item in first if item not in second]
 
-        deleted_job_ids = diff(all_batch_job_ids, exisitng_job_ids)
+        deleted_job_ids = diff(all_batch_job_ids, existing_job_ids)
         for deleted_job_id in deleted_job_ids:
             action = jobs_2_actions.get(deleted_job_id)
             action_id = action.id if action else None
@@ -114,24 +114,45 @@ class PendingActionsCheck(object):
 
     def find_pending_dart_actions(self, workflow_id, workflow_service):
         ''' We send workflow_service to avoid cyclical injection from workflow_service '''
-        queued_or_running_wf_instances = self.get_queued_or_running_workflow_instances(workflow_id, workflow_service)
-        if queued_or_running_wf_instances:
-            incomplete_actions, jobs_2_actions, action_2_wf_instance, actions_without_jobs = self.get_instance_actions(queued_or_running_wf_instances)
 
-            batch_job_ids = jobs_2_actions.keys()
-            _logger.info("Zombie Check: extract job_ids {0} form incomplete actions {1}".format(batch_job_ids, [act.id for act in incomplete_actions]))
+        try:
+            _logger.info('Zombie Check: Looking for pending action for workflow {wf_id}.'.format(wf_id=workflow_id))
+            queued_or_running_wf_instances = self.get_queued_or_running_workflow_instances(workflow_id, workflow_service)
+            if queued_or_running_wf_instances:
+                incomplete_actions, jobs_2_actions, action_2_wf_instance, actions_without_jobs = self.get_instance_actions(queued_or_running_wf_instances)
 
-            try:
-                # there should not be too many jobs per wf_instance so we do not need to retry getting more batches.
-                batch_jobs = self._batch_client.describe_jobs(jobs=batch_job_ids)
-                exisitng_job_ids = filter(None, [job.get('jobId') for job in batch_jobs.get('jobs', [])])
-            except Exception as err:
-                _logger.error("Zombie Check: failed to execute batch's describe_jobs. err = {0}".format(err))
-            else:
-                self.handle_done_batch_jobs_with_not_complete_wf_instances(batch_jobs, jobs_2_actions, action_2_wf_instance, workflow_service)
-                self.handle_actions_without_batch_job_ids(actions_without_jobs=actions_without_jobs, action_2_wf_instance=action_2_wf_instance, workflow_service=workflow_service)
-                self.handle_actions_with_deleted_batch_jobs(all_batch_job_ids=batch_job_ids, exisitng_job_ids=exisitng_job_ids, jobs_2_actions=jobs_2_actions, workflow_service=workflow_service)
+                batch_job_ids = jobs_2_actions.keys()
+                _logger.info("Zombie Check: extract job_ids {0} form incomplete actions {1}".format(batch_job_ids, [act.id for act in incomplete_actions]))
 
+                if batch_job_ids:
+                    try:
+                        # there should not be too many jobs per wf_instance so we do not need to retry getting more batches.
+                        batch_jobs = self._batch_client.describe_jobs(jobs=batch_job_ids)
+                        existing_job_ids = filter(None, [job.get('jobId') for job in batch_jobs.get('jobs', [])])
+                    except Exception as err:
+                        _logger.error("Zombie Check: failed to execute batch's describe_jobs. err = {0}".format(err))
+                    else:
+                        self.handle_done_batch_jobs_with_not_complete_wf_instances(batch_jobs,
+                                                                                   jobs_2_actions,
+                                                                                   action_2_wf_instance,
+                                                                                   workflow_service)
+
+                        self.handle_actions_without_batch_job_ids(actions_without_jobs=actions_without_jobs,
+                                                                  action_2_wf_instance=action_2_wf_instance,
+                                                                  workflow_service=workflow_service)
+
+                        self.handle_actions_with_deleted_batch_jobs(all_batch_job_ids=batch_job_ids,
+                                                                    existing_job_ids=existing_job_ids,
+                                                                    jobs_2_actions=jobs_2_actions,
+                                                                    action_2_wf_instance=action_2_wf_instance,
+                                                                    workflow_service=workflow_service)
+                else:
+                    self.handle_actions_without_batch_job_ids(actions_without_jobs=actions_without_jobs,
+                                                              action_2_wf_instance=action_2_wf_instance,
+                                                              workflow_service=workflow_service)
+
+        except Exception as err:
+            _logger.error("Zombie Check: failed to find pending dart actions for workflow {0}. err={1}".format(workflow_id, err))
 
 
 
