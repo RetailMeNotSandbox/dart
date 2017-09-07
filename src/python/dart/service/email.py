@@ -6,6 +6,9 @@ from retrying import retry
 from dart.context.locator import injectable
 from dart.util.config import _get_dart_host
 
+from Queue import Queue
+from threading import Thread
+
 
 _logger = logging.getLogger(__name__)
 
@@ -22,6 +25,13 @@ class Emailer(object):
         self._suppress_send = email_config.get('suppress_send', False)
         self._dart_host = _get_dart_host(dart_config)
 
+        # We have one mailer being used in trigger_listener
+        self._email_queue = Queue(maxsize=1000) # we should not have that many emails pending to be sent
+        email_worker = Thread(target=self.send_queued_email_runner, args=(self._email_queue,))
+        email_worker.setDaemon(True)  # we run in a container, when it exits this thread will exit too.
+        email_worker.start()
+
+
     def get_entity_link(self, entity, action_id):
         origin_param = '["id=%s"]' %(action_id)
         converted_param = urllib.quote(origin_param, safe='')
@@ -32,14 +42,36 @@ class Emailer(object):
     def get_workflow_manager_link(self, workflow_id):
         return 'https://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
 
-    # we experience occasional gmail API issues, so we will retry a few times
+    @staticmethod
     @retry(wait_fixed=10000, stop_max_attempt_number=12)
+    # we experience occasional gmail API issues, so we will retry a few times
+    def send_queued_email(args):
+        msg = args.get('msg')
+        _logger.info("Mailer Thread: message= {to}, {subject}, {body}".format(to=msg.To, subject=msg.Subject, body=msg.Body))
+        args.get('mail_sender', lambda(x,y): None)(msg, args.get('debug'))
+
+    @staticmethod
+    def send_queued_email_runner(q):
+        while True:
+            args = q.get()
+            try:
+                Emailer.send_queued_email(args)
+            except Exception as err:
+                _logger.error("Failed to send email {0}".format(args.get('msg')))
+
+            q.task_done()
+
     def send_email(self, subject, body, to, cc=None):
         msg = Message(From=self._from, To=to, Subject=self._env_name + ' - ' + subject, Body=body, CC=cc)
         if self._suppress_send:
             _logger.info('email suppressed: subject=%s' % msg.Subject)
             return
-        self._mailer.send(msg, self._debug)
+
+        self._email_queue.put({
+            'msg': msg,
+            'mail_sender': self._mailer.send,
+            'debug': self._debug
+        })
 
     def send_error_email(self, subject, body, to=None):
         cc = None
