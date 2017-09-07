@@ -139,7 +139,7 @@ def update_action_state():
             current_action = action_service().get_action(action_status['action_id'])
             if should_update(action_status['action_status'], current_action.data.state):
                 _logger.info("AWS_Batch: Updating action={0} from {1} to state {2}".format(current_action.id, current_action.data.state, action_status['action_status']))
-                action_service().update_action_state(current_action, action_status['action_status'], "")
+                action_service().update_action_state(current_action, action_status['action_status'])
 
             # if we receive a workflow_instance_id (not empty) then we need to set workflow_instance status.
             # we may need to set workflow and datastore status if they need to be deactivated on failure.

@@ -16,6 +16,10 @@ class DartLockTimeoutException(Exception):
     pass
 
 
+class DartEmailException(Exception):
+    pass
+
+
 class DartActionException(Exception):
     def __init__(self, message, data=None):
         self.data = data

@@ -3,6 +3,7 @@ import urllib
 from textwrap import dedent
 from mailer import Mailer, Message
 from retrying import retry
+from dart.model.exception import DartEmailException
 from dart.context.locator import injectable
 from dart.util.config import _get_dart_host
 
@@ -39,7 +40,10 @@ class Emailer(object):
         if self._suppress_send:
             _logger.info('email suppressed: subject=%s' % msg.Subject)
             return
-        self._mailer.send(msg, self._debug)
+        try:
+            self._mailer.send(msg, self._debug)
+        except Exception as e:
+            raise DartEmailException(e)
 
     def send_error_email(self, subject, body, to=None):
         cc = None
