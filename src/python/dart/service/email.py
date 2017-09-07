@@ -33,7 +33,7 @@ class Emailer(object):
         return 'https://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
 
     # we experience occasional gmail API issues, so we will retry a few times
-    @retry(wait_fixed=10000, stop_max_attempt_number=12)
+    # @retry(wait_fixed=10000, stop_max_attempt_number=12)
     def send_email(self, subject, body, to, cc=None):
         msg = Message(From=self._from, To=to, Subject=self._env_name + ' - ' + subject, Body=body, CC=cc)
         if self._suppress_send:
