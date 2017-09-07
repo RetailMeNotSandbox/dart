@@ -99,7 +99,7 @@ class EngineWorker(Tool):
                         action_service.update_action_batch_job_id(action, batch_job_id)
                     else:
                         # no batch job-id means there isn't enough capacity at the moment, so try again later
-                        action_service.update_action_state(action, ActionState.QUEUED, action.data.error_message)
+                        action_service.update_action_state(action, ActionState.QUEUED, error_message=action.data.error_message)
 
                 else:
                     msg = 'engine %s has no ecs_task_definition and local engines are not allowed'

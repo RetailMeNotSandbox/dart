@@ -83,19 +83,16 @@ def put_engine(engine):
 def action_checkout(action):
     """ :type action: dart.model.action.Action """
     results = validate_engine_action(action, ActionState.PENDING)
-    # (error_response, error_response_code, headers)
+
     if len(results) == 3:
         return results
 
     try:
         action = workflow_service().action_checkout(action)
-    except DartRequestException as e:
+    except DartRequestException:
         raise
     except Exception as err:
-        return {'result': str(err)}, 529
-    # else:
-    #     return {'result': "Failed action checkout"}, 530
-
+        return {'results': 'FAILURE', 'error_message': str(err)}, 529
 
     engine, datastore = results
     return {'results': ActionContext(engine, action, datastore).to_dict()}
