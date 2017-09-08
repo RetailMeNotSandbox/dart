@@ -14,7 +14,7 @@ from dart.service.patcher import patch_difference, retry_stale_data
 from dart.util.rand import random_id
 from dart.util.aws_batch import AWS_Batch_Dag
 from dart.util.config_metadata import get_key
-from dart.model.exception import DartRequestException
+from dart.model.exception import DartRequestException, DartEmailException
 import boto3
 
 _logger = logging.getLogger(__name__)
@@ -161,32 +161,33 @@ class WorkflowService(object):
 
     def action_checkout(self, input_action):
         action = None
-        wf_instance = None
         step = "Starting action checkout"
         try:
-            action = self._action_service.update_action_state(input_action, ActionState.RUNNING, input_action.data.error_message)
+            action = self._action_service.update_action_state(input_action, ActionState.RUNNING, input_action.data.error_message, commit=False)
             step = "Updated action state to running"
 
             if action.data.workflow_instance_id and action.data.first_in_workflow:
                 wf_instance = self.get_workflow_instance(action.data.workflow_instance_id)
                 step = "Got workflow instance {0} since it is the first action in workflow".format(action.data.workflow_instance_id)
 
-                self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.RUNNING)
+                self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.RUNNING, commit=False)
                 step = "Updated workflow_instance {0} state to running".format(action.data.workflow_instance_id)
 
                 wf = self.get_workflow(action.data.workflow_id)
                 step = "Got Workflow {0}".format(action.data.workflow_id)
+
                 if wf.data.on_started_email:
                     self._emailer.send_workflow_started_email(wf, wf_instance)
                     step = "Sent emails for workflow instance {0}".format(action.data.workflow_instance_id)
-
+        except DartEmailException as err:
+            _logger.error("action email on started Failed, step={0}, action={1}, err={2}".format(step, input_action, err))
+            pass
         except Exception as err:
             _logger.error("action checkout Failed, step={0}, action={1}, err={2}".format(step, input_action, err))
-            if input_action and input_action.data:
-                self._action_service.update_action_state(input_action, ActionState.PENDING, input_action.data.error_message)
-            if wf_instance:
-                self.update_workflow_instance_state(wf_instance, WorkflowInstanceState.QUEUED)
+            db.session.rollback()
             raise DartRequestException(response=None, message="Error:{0}, status_step={1}".format(err.message, step))
+
+        db.session.commit()
 
         return action
 
@@ -258,7 +259,7 @@ class WorkflowService(object):
         workflow.data.avg_runtime = sum(runtimes, timedelta())
         return patch_difference(WorkflowDao, source_workflow, workflow, True)
 
-    def update_workflow_instance_state(self, workflow_instance, state, commit_changes=True, error_message=None):
+    def update_workflow_instance_state(self, workflow_instance, state, commit=True, error_message=None, conditional=None):
         """ :type workflow_instance: dart.model.workflow.WorkflowInstance """
         source_workflow_instance = workflow_instance.copy()
         workflow_instance.data.state = state
@@ -272,7 +273,7 @@ class WorkflowService(object):
         elif state == WorkflowInstanceState.FAILED:
             workflow_instance.data.end_time = datetime.now()
             workflow_instance.data.error_message = error_message
-        return patch_difference(WorkflowInstanceDao, source_workflow_instance, workflow_instance, commit_changes)
+        return patch_difference(WorkflowInstanceDao, source_workflow_instance, workflow_instance, commit, conditional)
 
     def run_triggered_workflow(self, workflow_msg, trigger_type, trigger_id=None, retry_num=0):
         _logger.info('run_triggered_workflow: workflow_msg={0}, trigger_type={1}.'.format(workflow_msg, trigger_type))

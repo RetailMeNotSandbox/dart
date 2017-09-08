@@ -3,6 +3,7 @@ import urllib
 from textwrap import dedent
 from mailer import Mailer, Message
 from retrying import retry
+from dart.model.exception import DartEmailException
 from dart.context.locator import injectable
 from dart.util.config import _get_dart_host
 
@@ -41,6 +42,7 @@ class Emailer(object):
 
     def get_workflow_manager_link(self, workflow_id):
         return 'https://%s/#/managers/workflow?id=%s&t=wf' % (self._dart_host, workflow_id)
+
 
     @staticmethod
     @retry(wait_fixed=10000, stop_max_attempt_number=12)

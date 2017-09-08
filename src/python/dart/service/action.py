@@ -219,7 +219,7 @@ class ActionService(object):
         action.data.completed_runs += 1
         return patch_difference(ActionDao, source_action, action, True, conditional)
 
-    def update_action_state(self, action, state, error_message, conditional=None):
+    def update_action_state(self, action, state, commit=True, error_message=None, conditional=None):
         """ :type action: dart.model.action.Action """
         source_action = action.copy()
         action.data.error_message = error_message
@@ -235,7 +235,7 @@ class ActionService(object):
             action.data.progress = 1
             self.update_action_avg_runtime(action)
 
-        return patch_difference(ActionDao, source_action, action, True, conditional)
+        return patch_difference(ActionDao, source_action, action, commit, conditional)
 
     @staticmethod
     def update_action_batch_job_id(action, batch_job_id):
