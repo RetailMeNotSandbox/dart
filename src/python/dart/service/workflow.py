@@ -163,7 +163,10 @@ class WorkflowService(object):
         action = None
         step = "Starting action checkout"
         try:
-            action = self._action_service.update_action_state(input_action, ActionState.RUNNING, input_action.data.error_message, commit=False)
+            action = self._action_service.update_action_state(action=input_action,
+                                                              state=ActionState.RUNNING,
+                                                              error_message=input_action.data.error_message,
+                                                              commit=False)
             step = "Updated action state to running"
 
             if action.data.workflow_instance_id and action.data.first_in_workflow:
@@ -198,7 +201,11 @@ class WorkflowService(object):
                 else SubscriptionElementState.UNCONSUMED
             state = consume_subscription_state or action_based
             self._subscription_element_service.update_subscription_elements_state(action.id, state)
-        return self._action_service.update_action_state(action, ActionState.FINISHING, action.data.error_message)
+
+        return self._action_service.update_action_state(action=action,
+                                                        state=ActionState.FINISHING,
+                                                        error_message=action.data.error_message,
+                                                        commit=True)
 
     @staticmethod
     def patch_workflow(source_workflow, workflow):
