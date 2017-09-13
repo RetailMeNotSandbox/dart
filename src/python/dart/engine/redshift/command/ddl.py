@@ -10,11 +10,11 @@ def get_target_schema_and_table_name(action, dataset):
 
 def get_stage_schema_and_table_name(action, dataset):
     schema_name, table_name = get_target_schema_and_table_name(action, dataset)
-    return 'dart_stage', schema_name + '_' + table_name + '_' + action.id
+    return 'dart_stage', schema_name + '_' + table_name + '_' + action.data.workflow_action_id
 
 
 def get_tracking_schema_and_table_name(action):
-    table_name = 's3_files_for_action_%s' % action.id
+    table_name = 's3_files_for_action_%s' % action.data.workflow_action_id
     if action.data.action_type_name == RedshiftActionTypes.consume_subscription.name:
         table_name = 's3_files_for_subscription_%s' % action.data.args['subscription_id']
     return 'dart_tracking', table_name
