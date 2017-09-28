@@ -126,7 +126,7 @@ class RedshiftCluster(object):
         self.wait_for_cluster_available()
         return self.get_db_engine().connect()
 
-    @retry(wait_fixed=10000, stop_max_attempt_number=7, retry_on_exception=_retry_waiter_error)
+    @retry(wait_random_min=50000, wait_random_max=70000, stop_max_attempt_number=30, retry_on_exception=_retry_waiter_error)
     def wait_for_cluster_available(self):
         boto3.client('redshift').get_waiter('cluster_available').wait(ClusterIdentifier=self.cluster_identifier)
 
