@@ -117,6 +117,34 @@ class AWS_Batch_Dag(object):
         _logger.info("AWS_Batch: Done building workflow {0} with jobs: {1}".
                      format(wf_attribs['workflow_id'], all_previous_jobs))
 
+
+    def add_container_overrides(self, oaction, submit_job_input, job_name):
+        ''' action overrides job_defintion or dart-rpt.yaml configs  '''
+        # special batch overrides
+        if oaction.data.batch_overrides:
+            if oaction.data.batch_overrides.get('vcpus'):
+                submit_job_input['containerOverrides']['vcpus'] = oaction.data.batch_overrides.get('vcpus')
+                _logger.info("AWS_Batch: job={0} vcpus overrides={1}".format(job_name, oaction.data.batch_overrides.get('vcpus')))
+
+            if oaction.data.batch_overrides.get('memory_mb'):
+                submit_job_input['containerOverrides']['memory'] = oaction.data.batch_overrides.get('memory_mb')
+                _logger.info("AWS_Batch: job={0} memory_mb overrides={1}".format(job_name, oaction.data.batch_overrides.get('memory_mb')))
+
+            if oaction.data.batch_overrides.get('job_definition'):
+                submit_job_input['jobDefinition'] = oaction.data.batch_overrides.get('job_definition')
+                _logger.info("AWS_Batch: job={0} jobDefinition overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_definition')))
+
+            if oaction.data.batch_overrides.get('job_queue'):
+                submit_job_input['jobQueue'] = oaction.data.batch_overrides.get('job_queue')
+                _logger.info("AWS_Batch: job={0} job_queue overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_queue')))
+
+            if oaction.data.batch_overrides.get('job_name'):
+                submit_job_input['jobName'] = oaction.data.batch_overrides.get('job_name')
+                _logger.info("AWS_Batch: job={0} jobName overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_name')))
+
+        return submit_job_input
+
+
     def submit_job(self, wf_attribs, idx, oaction, last_action_index, dependency, action_env):
         job_name = self.generate_job_name(wf_attribs['workflow_id'], oaction.data.order_idx, oaction.data.name, self.job_definition_suffix)
         _logger.info("AWS_Batch: job-name={0}, dependsOn={1}".format(job_name, dependency))
@@ -129,22 +157,25 @@ class AWS_Batch_Dag(object):
 
         # submit_job is sensitive to None value in env variables so we wrap them with str(..)
         input_env = json.dumps(self.generate_env_vars(wf_attribs, action_env, idx == 0, idx == last_action_index))
-        response = self.client.submit_job(jobName=job_name,
-                                          # SNS to notify workflow completion and action completion
-                                          jobDefinition=self.get_latest_active_job_definition(oaction.data.engine_name, self.job_definition_suffix, self.client.describe_job_definitions),
-                                          jobQueue=queue_name,
-                                          dependsOn=dependency,
-                                          containerOverrides={
-                                              'environment': [
-                                                  {'name': 'input_env', 'value': input_env}, # passing execution info to job
-                                                  {'name': 'DART_ACTION_ID', 'value': str(oaction.id)},
-                                                  {'name': 'DART_ACTION_USER_ID', 'value': str(oaction.data.user_id)},
-                                                  {'name': 'DART_CONFIG', 'value': str(self.dart_config)},
-                                                  {'name': 'DART_ROLE', 'value': "worker:{0}".format(oaction.data.engine_name)},  # An implicit convention
-                                                  {'name': 'DART_URL', 'value': str(self.dart_url)}, # Used by abacus to access data lineage
-                                                  {'name': 'AWS_DEFAULT_REGION', 'value': str(self.aws_default_region)}
-                                              ]
-                                          })
+        submit_job_input = {
+            'jobName': job_name,
+            'jobDefinition': self.get_latest_active_job_definition(oaction.data.engine_name, self.job_definition_suffix, self.client.describe_job_definitions),
+            'jobQueue': queue_name,
+            'dependsOn': dependency,
+            'containerOverrides': {
+              'environment': [
+                {'name': 'input_env', 'value': input_env}, # passing execution info to job
+                {'name': 'DART_ACTION_ID', 'value': str(oaction.id)},
+                {'name': 'DART_ACTION_USER_ID', 'value': str(oaction.data.user_id)},
+                {'name': 'DART_CONFIG', 'value': str(self.dart_config)},
+                {'name': 'DART_ROLE', 'value': "worker:{0}".format(oaction.data.engine_name)},  # An implicit convention
+                {'name': 'DART_URL', 'value': str(self.dart_url)}, # Used by abacus to access data lineage
+                {'name': 'AWS_DEFAULT_REGION', 'value': str(self.aws_default_region)}
+              ]
+            }
+        }
+        job_input = self.add_container_overrides(oaction=oaction, submit_job_input=submit_job_input, job_name=job_name)
+        response = self.client.submit_job(**job_input)
         _logger.info("AWS_Batch: response={0}".format(response))
         return response['jobId']
 
