@@ -19,13 +19,11 @@ def action_schema(supported_action_type_params_schema):
             'order_idx': {'type': ['number', 'null'], 'minimum': 0.0},
             'parallelization_parents': parallelization_parents(),
             'parallelization_idx': {'type': ['number', 'null'], 'minimum': 0.0},
-            'batch_overrides': {
-                'vcpus': {'type': ['number', 'null'], 'minimum': 0.0, 'maximum': 1024, 'readonly': True},
-                'memory_mb': {'type': ['number', 'null'], 'minimum': 0.0, 'maximum': 61440, 'readonly': True},
-                'job_definition': {'type': ['string', 'null'], 'readonly': True},
-                'job_queue': {'type': ['string', 'null'], 'readonly': True},
-                'job_name': {'type': ['string', 'null'], 'readonly': True}
-             },
+            'vcpus': {'type': ['number', 'null'], 'minimum': 1.0, 'maximum': 1024},
+            'memory_mb': {'type': ['number', 'null'], 'minimum': 4.0, 'maximum': 61440},
+            'job_definition': {'type': ['string', 'null']},
+            'job_queue': {'type': ['string', 'null']},
+            'job_name': {'type': ['string', 'null']},
             'error_message': {'type': ['string', 'null'], 'readonly': True, "x-schema-form": {"type": "textarea"}},
             'on_failure': {
                 'type': 'string',

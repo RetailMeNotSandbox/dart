@@ -121,26 +121,26 @@ class AWS_Batch_Dag(object):
     def add_container_overrides(self, oaction, submit_job_input, job_name):
         ''' action overrides job_defintion or dart-rpt.yaml configs  '''
         # special batch overrides
-        if oaction.data.batch_overrides:
-            if oaction.data.batch_overrides.get('vcpus'):
-                submit_job_input['containerOverrides']['vcpus'] = oaction.data.batch_overrides.get('vcpus')
-                _logger.info("AWS_Batch: job={0} vcpus overrides={1}".format(job_name, oaction.data.batch_overrides.get('vcpus')))
+        if hasattr(oaction.data, 'vcpus') and oaction.data.vcpus:
+            submit_job_input['containerOverrides']['vcpus'] = oaction.data.vcpus
+            _logger.info("AWS_Batch: job={0} vcpus overrides={1}".format(job_name, oaction.data.vcpus))
 
-            if oaction.data.batch_overrides.get('memory_mb'):
-                submit_job_input['containerOverrides']['memory'] = oaction.data.batch_overrides.get('memory_mb')
-                _logger.info("AWS_Batch: job={0} memory_mb overrides={1}".format(job_name, oaction.data.batch_overrides.get('memory_mb')))
+        if hasattr(oaction.data, 'memory_mb') and oaction.data.memory_mb:
+            submit_job_input['containerOverrides']['memory'] = oaction.data.memory_mb
+            _logger.info("AWS_Batch: job={0} memory_mb overrides={1}".format(job_name, oaction.data.memory_mb))
 
-            if oaction.data.batch_overrides.get('job_definition'):
-                submit_job_input['jobDefinition'] = oaction.data.batch_overrides.get('job_definition')
-                _logger.info("AWS_Batch: job={0} jobDefinition overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_definition')))
+        if hasattr(oaction.data, 'job_definition') and oaction.data.job_definition:
+            submit_job_input['jobDefinition'] = oaction.data.job_definition
+            _logger.info("AWS_Batch: job={0} jobDefinition overrides={1}".format(job_name, oaction.data.job_definition))
 
-            if oaction.data.batch_overrides.get('job_queue'):
-                submit_job_input['jobQueue'] = oaction.data.batch_overrides.get('job_queue')
-                _logger.info("AWS_Batch: job={0} job_queue overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_queue')))
+        if hasattr(oaction.data, 'job_name') and oaction.data.job_name:
+            submit_job_input['jobName'] = oaction.data.job_name
+            _logger.info("AWS_Batch: job={0} jobName overrides={1}".format(job_name, oaction.data.job_name))
 
-            if oaction.data.batch_overrides.get('job_name'):
-                submit_job_input['jobName'] = oaction.data.batch_overrides.get('job_name')
-                _logger.info("AWS_Batch: job={0} jobName overrides={1}".format(job_name, oaction.data.batch_overrides.get('job_name')))
+        if hasattr(oaction.data, 'job_queue') and oaction.data.job_queue:
+            submit_job_input['jobQueue'] = oaction.data.job_queue
+            _logger.info("AWS_Batch: job={0} job_queue overrides={1}".format(job_name, oaction.data.job_queue))
+
 
         return submit_job_input
 
