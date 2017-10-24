@@ -221,6 +221,12 @@ def update_action(action, updated_action):
     sanitized_action.data.on_success_email = updated_action.data.on_success_email
     sanitized_action.data.extra_data = updated_action.data.extra_data
 
+    sanitized_action.data.vcpus = updated_action.data.vcpus
+    sanitized_action.data.memory_mb = updated_action.data.memory_mb
+    sanitized_action.data.job_definition = updated_action.data.job_definition
+    sanitized_action.data.job_queue = updated_action.data.job_queue
+    sanitized_action.data.job_name = updated_action.data.job_name
+
     # revalidate
     sanitized_action = action_service().default_and_validate_action(sanitized_action)
 
